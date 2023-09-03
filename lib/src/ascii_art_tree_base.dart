@@ -79,6 +79,38 @@ class ASCIIArtTree {
         stripPrefix: stripPrefix, stripSuffix: stripSuffix, style: style);
   }
 
+  /// Computes and returns the total number of leafs in the tree.
+  int get totalLeafs => _expandLeafs(tree.values).length;
+
+  Iterable _expandLeafs(v) {
+    if (v is Map) {
+      if (v.isEmpty) {
+        return [true];
+      }
+      return v.values.expand(_expandLeafs);
+    } else if (v is Iterable) {
+      return v.expand(_expandLeafs);
+    } else {
+      return [true];
+    }
+  }
+
+  /// Computes and returns the total number of nodes in the tree.
+  int get totalNodes => _expandNodes(tree.values).length;
+
+  Iterable _expandNodes(v) {
+    if (v is Map) {
+      if (v.isEmpty) {
+        return [true];
+      }
+      return [true, ...v.values.expand(_expandNodes)];
+    } else if (v is Iterable) {
+      return v.expand(_expandNodes);
+    } else {
+      return [true];
+    }
+  }
+
   /// Generates the ASCII Art Tree.
   /// - If [style] is passed overrides the instance style.
   String generate({ASCIIArtTreeStyle? style}) {

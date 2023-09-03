@@ -17,6 +17,8 @@ void main() {
 
       print('\n\n$generateTreeText');
 
+      expect(asciiArtTree.totalLeafs, equals(6));
+
       expect(
           generateTreeText,
           '''
@@ -47,6 +49,9 @@ file:
 
       print('\n\n$generateTreeText');
 
+      expect(asciiArtTree.totalLeafs, equals(2));
+      expect(asciiArtTree.totalNodes, equals(8));
+
       expect(
           generateTreeText,
           '''
@@ -75,6 +80,9 @@ _X
       var generateTreeText = asciiArtTree.generate();
 
       print('\n\n$generateTreeText');
+
+      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
           generateTreeText,
@@ -110,6 +118,9 @@ _X
 
       print('\n\n$generateTreeText');
 
+      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalNodes, equals(12));
+
       expect(
           generateTreeText,
           '''
@@ -142,6 +153,9 @@ _X
       var generateTreeText = asciiArtTree.generate();
 
       print('\n\n$generateTreeText');
+
+      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalNodes, equals(14));
 
       expect(
           generateTreeText,
@@ -178,6 +192,9 @@ _X
 
       print('\n\n$generateTreeText');
 
+      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalNodes, equals(13));
+
       expect(
           generateTreeText,
           '''
@@ -211,6 +228,9 @@ workspace-assets
       var generateTreeText = asciiArtTree.generate();
 
       print('\n\n$generateTreeText');
+
+      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
           generateTreeText,
@@ -246,6 +266,9 @@ b
 
       print('\n\n$generateTreeText');
 
+      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalNodes, equals(13));
+
       expect(
           generateTreeText,
           '''
@@ -280,6 +303,9 @@ bb
 
       print('\n\n$generateTreeText');
 
+      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalNodes, equals(13));
+
       expect(
           generateTreeText,
           '''
@@ -312,6 +338,9 @@ bb
 
       print('\n\n$generateTreeText');
 
+      expect(asciiArtTree.totalLeafs, equals(4));
+      expect(asciiArtTree.totalNodes, equals(5));
+
       expect(
           generateTreeText,
           '''
@@ -335,6 +364,9 @@ root
       var generateTreeText = asciiArtTree.generate();
 
       print('\n\n$generateTreeText');
+
+      expect(asciiArtTree.totalLeafs, equals(4));
+      expect(asciiArtTree.totalNodes, equals(9));
 
       expect(
           generateTreeText,
@@ -362,6 +394,9 @@ root
       var generateTreeText = asciiArtTree.generate();
 
       print('\n\n$generateTreeText');
+
+      expect(asciiArtTree.totalLeafs, equals(4));
+      expect(asciiArtTree.totalNodes, equals(9));
 
       expect(
           generateTreeText,
@@ -391,6 +426,9 @@ root
 
       print('\n\n$generateTreeText');
 
+      expect(asciiArtTree.totalLeafs, equals(4));
+      expect(asciiArtTree.totalNodes, equals(8));
+
       expect(
           generateTreeText,
           '''
@@ -419,6 +457,9 @@ root
       var generateTreeText = asciiArtTree.generate();
 
       print('\n\n$generateTreeText');
+
+      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
           generateTreeText,
@@ -454,6 +495,9 @@ workspace-assets
 
       print('\n\n$generateTreeText');
 
+      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalNodes, equals(13));
+
       expect(
           generateTreeText,
           '''
@@ -488,6 +532,9 @@ b
 
       print('\n\n$generateTreeText');
 
+      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalNodes, equals(13));
+
       expect(
           generateTreeText,
           '''
@@ -520,6 +567,9 @@ bb
 
       print('\n\n$generateTreeText');
 
+      expect(asciiArtTree.totalLeafs, equals(4));
+      expect(asciiArtTree.totalNodes, equals(9));
+
       expect(
           generateTreeText,
           '''
@@ -546,6 +596,9 @@ root
       var generateTreeText = asciiArtTree.generate();
 
       print('\n\n$generateTreeText');
+
+      expect(asciiArtTree.totalLeafs, equals(4));
+      expect(asciiArtTree.totalNodes, equals(11));
 
       expect(
           generateTreeText,
