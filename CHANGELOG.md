@@ -1,3 +1,8 @@
+## 1.0.2
+
+- Fix example file name.
+- Improved documentation.
+
 ## 1.0.1
 
 - `ASCIIArtTree`:

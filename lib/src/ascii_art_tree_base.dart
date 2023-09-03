@@ -28,6 +28,9 @@ class ASCIIArtTree {
     this.style = ASCIIArtTreeStyle.elegant,
   });
 
+  /// Constructs an [ASCIIArtTree] from a list of paths, splitting
+  /// the paths by [delimiter] or using the [splitter] if provided.
+  /// See [ASCIIArtTree.fromPaths].
   factory ASCIIArtTree.fromStringPaths(List<String> paths,
       {Pattern delimiter = '/',
       List<String> Function(String s)? splitter,
@@ -51,6 +54,8 @@ class ASCIIArtTree {
         stripPrefix: stripPrefix, stripSuffix: stripSuffix, style: style);
   }
 
+  /// Constructs an [ASCIIArtTree] from a list of paths (already split).
+  /// See [ASCIIArtTree.fromStringPaths].
   factory ASCIIArtTree.fromPaths(List<List<String>> paths,
       {String? stripPrefix,
       String? stripSuffix,
@@ -71,6 +76,7 @@ class ASCIIArtTree {
         stripPrefix: stripPrefix, stripSuffix: stripSuffix, style: style);
   }
 
+  /// Constructs an [ASCIIArtTree] from a JSON [Map].
   factory ASCIIArtTree.fromJson(Map<String, dynamic> json,
       {String? stripPrefix,
       String? stripSuffix,
