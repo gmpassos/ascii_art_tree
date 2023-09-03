@@ -639,6 +639,9 @@ root
           ASCIIArtTree.fromJson(json, style: ASCIIArtTreeStyle.dots);
 
       expect(asciiArtTree2.generate(), equals(generateTreeText));
+
+      expect(asciiArtTree2.totalLeafs, equals(4));
+      expect(asciiArtTree2.totalNodes, equals(11));
     });
   });
 }
