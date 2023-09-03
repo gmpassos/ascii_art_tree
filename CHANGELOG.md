@@ -1,3 +1,9 @@
+## 1.0.3
+
+- Expose CLI.
+- `ASCIIArtTree`:
+  - Not final fields: `stripPrefix`, `stripSuffix` and `style`. 
+
 ## 1.0.2
 
 - Fix example file name.

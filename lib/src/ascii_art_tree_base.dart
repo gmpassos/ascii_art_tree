@@ -13,13 +13,13 @@ class ASCIIArtTree {
   Map<String, dynamic> tree;
 
   /// Prefix to strip from each tree entry while generating the ASCII Art.
-  final String? stripPrefix;
+  String? stripPrefix;
 
   /// Suffix to strip from each tree entry while generating the ASCII Art.
-  final String? stripSuffix;
+  String? stripSuffix;
 
   /// The ASCII Art to generate.
-  final ASCIIArtTreeStyle style;
+  ASCIIArtTreeStyle style;
 
   ASCIIArtTree(
     this.tree, {
