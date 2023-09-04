@@ -585,6 +585,47 @@ root
               .trimLeft());
     });
 
+    test('generateTreeText: with pathInfoProvider', () async {
+      var asciiArtTree = ASCIIArtTree.fromStringPaths([
+        '/root/dir1/subA/file1',
+        '/root/dir1/subA/file2',
+        '/root/dir1/subB/file1',
+        '/root/dir1/subB/file2',
+      ], blankRoot: '', style: ASCIIArtTreeStyle.spaces);
+
+      asciiArtTree.pathInfoProvider = (parents, node, path) {
+        var fullPath = [...parents, path].join('/');
+        if (fullPath.endsWith('subA/file1')) {
+          return '(x)';
+        } else if (fullPath.endsWith('subB/file1')) {
+          return '(y)';
+        } else {
+          return null;
+        }
+      };
+
+      var generateTreeText = asciiArtTree.generate(indent: '> ', trim: true);
+
+      print('\n\n$generateTreeText');
+
+      expect(asciiArtTree.totalLeafs, equals(4));
+      expect(asciiArtTree.totalNodes, equals(9));
+
+      expect(
+          generateTreeText,
+          '''
+> root
+>   dir1
+>     subA
+>       file1 (x)
+>       file2
+>     subB
+>       file1 (y)
+>       file2
+'''
+              .trim());
+    });
+
     test('toJson/fromJson', () async {
       var asciiArtTree = ASCIIArtTree.fromStringPaths([
         '/root/dir1/subA/file1',

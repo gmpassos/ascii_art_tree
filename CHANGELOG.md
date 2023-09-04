@@ -1,3 +1,9 @@
+## 1.0.4
+
+- `ASCIIArtTree`:
+  - Added `pathInfoProvider`, to allow extra info for each tree entry.
+  - `generate`: add parameters `indent` and `trim`.
+
 ## 1.0.3
 
 - Expose CLI.

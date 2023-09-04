@@ -119,7 +119,8 @@ class ASCIIArtTree {
 
   /// Generates the ASCII Art Tree.
   /// - If [style] is passed overrides the instance style.
-  String generate({ASCIIArtTreeStyle? style}) {
+  String generate(
+      {String indent = '', bool trim = false, ASCIIArtTreeStyle? style}) {
     if (tree.isEmpty) return '';
 
     style ??= this.style;
@@ -149,24 +150,48 @@ class ASCIIArtTree {
       case ASCIIArtTreeStyle.spaces:
         {
           var text = treesTexts.map((t) => _simplifyStyle(t, ' ')).join();
-          return text;
+          return _applyIndent(indent, text, trim: trim);
         }
       case ASCIIArtTreeStyle.dots:
         {
           var text = treesTexts.map((t) => _simplifyStyle(t, '.')).join();
-          return text;
+          return _applyIndent(indent, text, trim: trim);
         }
       case ASCIIArtTreeStyle.elegant:
         {
           var text = treesTexts.map((t) => _fixElegantTree(t)).join();
-          return text;
+          return _applyIndent(indent, text, trim: trim);
         }
     }
   }
 
+  String _applyIndent(String indent, String text, {bool trim = false}) {
+    if (trim) {
+      text = text.trim();
+    }
+
+    if (indent.isEmpty) return text;
+    var lines = text.split('\n');
+
+    var lines2 = lines.map((l) => '$indent$l');
+    var text2 = lines2.join('\n');
+    return text2;
+  }
+
+  /// If defined provides optional extra info
+  /// for each entry in the [generate]d tree:
+  String? Function(
+          List<String> parents, Map<String, dynamic> node, String path)?
+      pathInfoProvider;
+
   StringBuffer _buildTree(Map<String, dynamic> node,
-      {String? root, int level = 0, StringBuffer? stringBuffer}) {
+      {String? root,
+      List<String>? parents,
+      int level = 0,
+      StringBuffer? stringBuffer}) {
     stringBuffer ??= StringBuffer();
+
+    final pathInfoProvider = this.pathInfoProvider;
 
     var entries = node.entries.toList(growable: false);
     final lastI = entries.length - 1;
@@ -205,11 +230,22 @@ class ASCIIArtTree {
       var importStripped =
           _stripSuffix(stripSuffix, _stripPrefix(stripPrefix, path));
 
-      stringBuffer.write('$indent$conn$arrow$importStripped\n');
+      var pathInfo = '';
+      if (pathInfoProvider != null) {
+        pathInfo = pathInfoProvider(parents ?? [], node, path) ?? '';
+        if (pathInfo.trim().isNotEmpty) {
+          pathInfo = ' $pathInfo';
+        }
+      }
+
+      stringBuffer.write('$indent$conn$arrow$importStripped$pathInfo\n');
 
       if (children != null) {
+        var parents2 = pathInfoProvider != null ? [...?parents, path] : null;
+
         _buildTree(children,
             root: root ?? importStripped,
+            parents: parents2,
             level: level + 1,
             stringBuffer: stringBuffer);
       }
