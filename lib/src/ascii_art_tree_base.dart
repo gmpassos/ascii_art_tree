@@ -1,4 +1,7 @@
+import 'dart:collection';
 import 'dart:math' as math;
+
+import 'package:collection/collection.dart';
 
 /// ASCII Art Tree Styles.
 enum ASCIIArtTreeStyle {
@@ -12,6 +15,9 @@ class ASCIIArtTree {
   /// The tree.
   Map<String, dynamic> tree;
 
+  /// The delimiter to use when joining nodes to represent a full path.
+  final String pathDelimiter;
+
   /// Prefix to strip from each tree entry while generating the ASCII Art.
   String? stripPrefix;
 
@@ -21,12 +27,32 @@ class ASCIIArtTree {
   /// The ASCII Art to generate.
   ASCIIArtTreeStyle style;
 
+  /// If `true`, the [tree] will allow graphs.
+  /// This means that each node in the tree is a global "key"
+  /// (not a local node key), allowing multiple references to the same node.
+  ///
+  /// Cases:
+  /// - If your tree is like a file directory, you don't want to have files
+  ///   with the same name but in different directories to be treated as the
+  ///   same node (`allowGraphs = false`).
+  /// - If your tree is like an import graph, every node with value `x` should
+  ///   be treated as the same [Node] (`allowGraphs = true`).
+  final bool allowGraphs;
+
+  final Map<String, Map<String, dynamic>> _allNodes = {};
+
+  final Set<String> _allLeaves = {};
+
   ASCIIArtTree(
-    this.tree, {
+    Map tree, {
+    this.pathDelimiter = '/',
     this.stripPrefix,
     this.stripSuffix,
     this.style = ASCIIArtTreeStyle.elegant,
-  });
+    this.allowGraphs = false,
+  }) : tree = tree.map<String, dynamic>((k, v) => MapEntry(k.toString(), v)) {
+    _updateAllNodes();
+  }
 
   /// Constructs an [ASCIIArtTree] from a list of paths, splitting
   /// the paths by [delimiter] or using the [splitter] if provided.
@@ -37,7 +63,8 @@ class ASCIIArtTree {
       String blankRoot = '/',
       String? stripPrefix,
       String? stripSuffix,
-      ASCIIArtTreeStyle style = ASCIIArtTreeStyle.elegant}) {
+      ASCIIArtTreeStyle style = ASCIIArtTreeStyle.elegant,
+      bool allowGraphs = false}) {
     splitter ??= (p) => p.split(delimiter);
 
     var paths2 = paths.map(splitter).toList(growable: false);
@@ -51,15 +78,21 @@ class ASCIIArtTree {
     }
 
     return ASCIIArtTree.fromPaths(paths2,
-        stripPrefix: stripPrefix, stripSuffix: stripSuffix, style: style);
+        pathDelimiter: delimiter is String ? delimiter : '/',
+        stripPrefix: stripPrefix,
+        stripSuffix: stripSuffix,
+        style: style,
+        allowGraphs: allowGraphs);
   }
 
   /// Constructs an [ASCIIArtTree] from a list of paths (already split).
   /// See [ASCIIArtTree.fromStringPaths].
   factory ASCIIArtTree.fromPaths(List<List<String>> paths,
-      {String? stripPrefix,
+      {String pathDelimiter = '/',
+      String? stripPrefix,
       String? stripSuffix,
-      ASCIIArtTreeStyle style = ASCIIArtTreeStyle.elegant}) {
+      ASCIIArtTreeStyle style = ASCIIArtTreeStyle.elegant,
+      bool allowGraphs = false}) {
     var tree = <String, dynamic>{};
 
     for (var path in paths.where((p) => p.isNotEmpty)) {
@@ -73,54 +106,141 @@ class ASCIIArtTree {
     }
 
     return ASCIIArtTree(tree,
-        stripPrefix: stripPrefix, stripSuffix: stripSuffix, style: style);
+        pathDelimiter: pathDelimiter,
+        stripPrefix: stripPrefix,
+        stripSuffix: stripSuffix,
+        style: style,
+        allowGraphs: allowGraphs);
   }
 
   /// Constructs an [ASCIIArtTree] from a JSON [Map].
   factory ASCIIArtTree.fromJson(Map<String, dynamic> json,
-      {String? stripPrefix,
+      {String pathDelimiter = '/',
+      String? stripPrefix,
       String? stripSuffix,
-      ASCIIArtTreeStyle style = ASCIIArtTreeStyle.elegant}) {
+      ASCIIArtTreeStyle style = ASCIIArtTreeStyle.elegant,
+      bool allowGraphs = false}) {
     return ASCIIArtTree(json,
-        stripPrefix: stripPrefix, stripSuffix: stripSuffix, style: style);
+        pathDelimiter: pathDelimiter,
+        stripPrefix: stripPrefix,
+        stripSuffix: stripSuffix,
+        style: style,
+        allowGraphs: allowGraphs);
   }
 
-  /// Computes and returns the total number of leafs in the tree.
-  int get totalLeafs => _expandLeafs(tree.values).length;
+  static final ListEquality<String> _listOfStringEquality =
+      ListEquality<String>();
 
-  Iterable _expandLeafs(v) {
-    if (v is Map) {
-      if (v.isEmpty) {
-        return [true];
+  void _updateAllNodes() {
+    _allNodes.clear();
+    _allLeaves.clear();
+
+    var queue = ListQueue<List>()..add(['', tree]);
+
+    while (queue.isNotEmpty) {
+      var entry = queue.removeFirst();
+
+      var parentGlobalKey = entry[0] as String;
+      var parent = entry[1] as Map<String, dynamic>;
+
+      var childKeys = parent.keys.toList();
+
+      for (var childKey in childKeys) {
+        var childValue = parent[childKey];
+
+        if (childValue == null) {
+          childValue = <String, dynamic>{};
+        } else if (childValue is Map) {
+          if (childValue.isEmpty) {
+            childValue = <String, dynamic>{};
+          } else {
+            childValue = childValue
+                .map<String, dynamic>((k, v) => MapEntry(k.toString(), v));
+          }
+        }
+
+        var childGlobalKey =
+            allowGraphs ? childKey : '$parentGlobalKey$pathDelimiter$childKey';
+
+        var node = _allNodes[childGlobalKey];
+
+        if (node == null) {
+          if (childValue is Map<String, dynamic>) {
+            node = _allNodes[childGlobalKey] = childValue;
+            parent[childKey] = node;
+            if (node.isEmpty) {
+              _allLeaves.add(childGlobalKey);
+            } else {
+              queue.add([childGlobalKey, node]);
+            }
+          } else if (childValue is String) {
+            if (childValue == childKey || childValue == '') {
+              node = _allNodes[childGlobalKey] ??= {};
+              parent[childKey] = node;
+            } else {
+              throw StateError(
+                  "Invalid graph reference. `$childKey` as `$childValue`");
+            }
+          } else {
+            throw StateError("Invalid node type: $childValue");
+          }
+        } else {
+          if (identical(childValue, node)) {
+            continue;
+          } else if (childValue is Map<String, dynamic>) {
+            var keys1 = childValue.keys.toList()..sort();
+            var keys2 = node.keys.toList()..sort();
+
+            if (!_listOfStringEquality.equals(keys1, keys2)) {
+              var newKeys = keys1
+                  .where((e) => !keys2.contains(e))
+                  .toList(growable: false);
+
+              if (newKeys.isNotEmpty) {
+                var newEntries =
+                    childValue.entries.where((e) => newKeys.contains(e.key));
+                node.addEntries(newEntries);
+                queue.add([childGlobalKey, node]);
+              }
+            }
+
+            parent[childKey] = node;
+          } else if (childValue is String) {
+            if (childValue == childGlobalKey || childValue == '') {
+              node = _allNodes[childGlobalKey] ??= {};
+              parent[childKey] = node;
+            } else {
+              throw StateError(
+                  "Invalid graph reference. `$childKey` as `$childValue`");
+            }
+          }
+        }
       }
-      return v.values.expand(_expandLeafs);
-    } else if (v is Iterable) {
-      return v.expand(_expandLeafs);
-    } else {
-      return [true];
     }
   }
+
+  /// Returns the total number of roots in the [tree].
+  int get totalRoots => tree.length;
+
+  /// Returns the roots of the [tree].
+  List<String> get roots => tree.keys.toList();
+
+  /// Returns the total number of leaves in the [tree].
+  int get totalLeaves => _allLeaves.length;
+
+  /// Returns the leaves of the [tree].
+  List<String> get leaves => _allLeaves.toList();
 
   /// Computes and returns the total number of nodes in the tree.
-  int get totalNodes => _expandNodes(tree.values).length;
-
-  Iterable _expandNodes(v) {
-    if (v is Map) {
-      if (v.isEmpty) {
-        return [true];
-      }
-      return [true, ...v.values.expand(_expandNodes)];
-    } else if (v is Iterable) {
-      return v.expand(_expandNodes);
-    } else {
-      return [true];
-    }
-  }
+  int get totalNodes => _allNodes.length;
 
   /// Generates the ASCII Art Tree.
   /// - If [style] is passed overrides the instance style.
   String generate(
-      {String indent = '', bool trim = false, ASCIIArtTreeStyle? style}) {
+      {String indent = '',
+      bool trim = false,
+      ASCIIArtTreeStyle? style,
+      bool expandGraphs = false}) {
     if (tree.isEmpty) return '';
 
     style ??= this.style;
@@ -135,7 +255,9 @@ class ASCIIArtTree {
         if (!isElegant) {
           root = e.key.length > 1 ? '   ' : '  ';
         }
-        return _buildTree(Map.fromEntries([e]), root: root).toString();
+        return _buildTree(Map.fromEntries([e]),
+                rootLine: root, expandGraphs: expandGraphs)
+            .toString();
       }).toList();
     } else {
       String? root;
@@ -143,7 +265,9 @@ class ASCIIArtTree {
         root = tree.keys.first.length > 1 ? '   ' : '  ';
       }
 
-      treesTexts = [_buildTree(tree, root: root).toString()];
+      treesTexts = [
+        _buildTree(tree, rootLine: root, expandGraphs: expandGraphs).toString()
+      ];
     }
 
     switch (style) {
@@ -180,74 +304,109 @@ class ASCIIArtTree {
 
   /// If defined provides optional extra info
   /// for each entry in the [generate]d tree:
-  String? Function(
-          List<String> parents, Map<String, dynamic> node, String path)?
+  String? Function(List<String> parents, Map<String, dynamic> node, String key)?
       pathInfoProvider;
 
-  StringBuffer _buildTree(Map<String, dynamic> node,
-      {String? root,
-      List<String>? parents,
-      int level = 0,
-      StringBuffer? stringBuffer}) {
-    stringBuffer ??= StringBuffer();
+  StringBuffer _buildTree(Map<String, dynamic> rootNode,
+      {String? rootLine, bool expandGraphs = false}) {
+    final stringBuffer = StringBuffer();
 
     final pathInfoProvider = this.pathInfoProvider;
 
-    var entries = node.entries.toList(growable: false);
-    final lastI = entries.length - 1;
-
-    for (var i = 0; i < entries.length; ++i) {
-      var e = entries[i];
-
-      final path = e.key;
-      final children = e.value as Map<String, dynamic>?;
-
-      var indent = level > 0 && root != null && root.length > 1
-          ? (root.length > 2 ? '  ' : ' ')
-          : '';
-      indent += '  ' * (level - 1).clamp(0, level);
-
-      String arrow;
-      if (children == null || children.isEmpty) {
-        arrow = '──> ';
+    Map<String, dynamic>? nodeResolver(Object? value) {
+      if (value is Map<String, dynamic>) {
+        return value;
+      } else if (value is String) {
+        return _allNodes[value] ??
+            (throw StateError("Can't find node: $value"));
       } else {
-        arrow = '─┬─ ';
+        return null;
       }
+    }
 
-      String conn;
+    Iterable<List> buildTasks(
+        Map<String, dynamic> node, List<String>? parents, int level) {
+      return node.entries.mapIndexed((i, e) => [i, node, e, parents, level]);
+    }
 
-      if (i == 0 && level == 0) {
-        conn = '';
-        arrow = '';
-      } else if (i == 0 && level == 1) {
-        conn = i == lastI ? '└' : '├';
-      } else if (i == lastI) {
-        conn = '└';
-      } else {
-        conn = '├';
-      }
+    final processed = <String>{};
 
-      var importStripped =
-          _stripSuffix(stripSuffix, _stripPrefix(stripPrefix, path));
+    final queue = ListQueue<List>();
+    queue.addAll(buildTasks(rootNode, null, 0));
 
-      var pathInfo = '';
-      if (pathInfoProvider != null) {
-        pathInfo = pathInfoProvider(parents ?? [], node, path) ?? '';
-        if (pathInfo.trim().isNotEmpty) {
-          pathInfo = ' $pathInfo';
+    while (queue.isNotEmpty) {
+      var task = queue.removeFirst();
+
+      final i = task[0] as int;
+      final parent = task[1] as Map<String, dynamic>;
+      final node = task[2] as MapEntry<String, dynamic>;
+      final parents = task[3] as List<String>?;
+      final level = task[4] as int;
+
+      final lastI = parent.length - 1;
+
+      {
+        final nodeKey = node.key;
+        final children = nodeResolver(node.value);
+
+        var indent = level > 0 && rootLine != null && rootLine.length > 1
+            ? (rootLine.length > 2 ? '  ' : ' ')
+            : '';
+        indent += '  ' * (level - 1).clamp(0, level);
+
+        String arrow;
+        if (children == null || children.isEmpty) {
+          arrow = '──> ';
+        } else {
+          arrow = '─┬─ ';
         }
-      }
 
-      stringBuffer.write('$indent$conn$arrow$importStripped$pathInfo\n');
+        String conn;
 
-      if (children != null) {
-        var parents2 = pathInfoProvider != null ? [...?parents, path] : null;
+        if (i == 0 && level == 0) {
+          conn = '';
+          arrow = '';
+        } else if (i == 0 && level == 1) {
+          conn = i == lastI ? '└' : '├';
+        } else if (i == lastI) {
+          conn = '└';
+        } else {
+          conn = '├';
+        }
 
-        _buildTree(children,
-            root: root ?? importStripped,
-            parents: parents2,
-            level: level + 1,
-            stringBuffer: stringBuffer);
+        var importStripped =
+            _stripSuffix(stripSuffix, _stripPrefix(stripPrefix, nodeKey));
+
+        // Already processed node. If NOT `expandGraphs`, not writing it again:
+        if (!expandGraphs && allowGraphs && !processed.add(nodeKey)) {
+          stringBuffer.write('$indent$conn$arrow$importStripped ººº\n');
+          continue;
+        }
+
+        var pathInfo = '';
+        if (pathInfoProvider != null) {
+          pathInfo = pathInfoProvider(parents ?? [], parent, nodeKey) ?? '';
+          if (pathInfo.trim().isNotEmpty) {
+            pathInfo = ' $pathInfo';
+          }
+        }
+
+        rootLine ??= importStripped;
+
+        stringBuffer.write('$indent$conn$arrow$importStripped$pathInfo\n');
+
+        if (children != null && children.isNotEmpty) {
+          final parents2 =
+              pathInfoProvider != null ? [...?parents, nodeKey] : null;
+
+          var tasks =
+              buildTasks(children, parents2, level + 1).toList(growable: false);
+
+          // Building tree in Depth-First Search (DFS):
+          for (var t in tasks.reversed) {
+            queue.addFirst(t);
+          }
+        }
       }
     }
 
@@ -351,21 +510,41 @@ class ASCIIArtTree {
         return MapEntry(indent, path);
       }).toList();
 
-  dynamic toJson() => _toJsonEntries(tree.entries);
+  dynamic toJson() {
+    if (tree.isEmpty) return null;
 
-  dynamic _toJsonEntries(Iterable<MapEntry<String, dynamic>> entries) {
-    if (entries.isEmpty) return null;
+    final json = <String, dynamic>{};
 
-    var entries2 = entries.map((e) {
-      var k = e.key;
-      var v = e.value;
-      if (v is Map<String, dynamic>) {
-        return MapEntry(k, _toJsonEntries(v.entries) as Map?);
-      } else {
-        return e;
+    var processed = <String>{};
+    var queue = ListQueue<List<Map<String, dynamic>>>()..add([tree, json]);
+
+    while (queue.isNotEmpty) {
+      var entry = queue.removeFirst();
+
+      var node = entry[0];
+      var jsonNode = entry[1];
+
+      for (var e in node.entries) {
+        var childKey = e.key;
+        var childNode = e.value;
+
+        if (processed.add(childKey)) {
+          if (childNode is Map<String, dynamic>) {
+            if (childNode.isEmpty) {
+              jsonNode[childKey] = null;
+            } else {
+              var childJsonNode =
+                  childNode.map<String, dynamic>((k, v) => MapEntry(k, null));
+              jsonNode[childKey] = childJsonNode;
+              queue.add([childNode, childJsonNode]);
+            }
+          }
+        } else {
+          jsonNode[childKey] = childKey;
+        }
       }
-    });
+    }
 
-    return Map<String, dynamic>.fromEntries(entries2);
+    return json;
   }
 }

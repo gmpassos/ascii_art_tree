@@ -17,7 +17,7 @@ void main() {
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalLeaves, equals(6));
 
       expect(
           generateTreeText,
@@ -49,7 +49,7 @@ file:
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(2));
+      expect(asciiArtTree.totalLeaves, equals(2));
       expect(asciiArtTree.totalNodes, equals(8));
 
       expect(
@@ -81,7 +81,7 @@ _X
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalLeaves, equals(6));
       expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
@@ -118,7 +118,7 @@ _X
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalLeaves, equals(6));
       expect(asciiArtTree.totalNodes, equals(12));
 
       expect(
@@ -154,7 +154,7 @@ _X
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalLeaves, equals(6));
       expect(asciiArtTree.totalNodes, equals(14));
 
       expect(
@@ -192,7 +192,7 @@ _X
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalLeaves, equals(6));
       expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
@@ -229,7 +229,7 @@ workspace-assets
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalLeaves, equals(6));
       expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
@@ -266,7 +266,7 @@ b
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalLeaves, equals(6));
       expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
@@ -303,7 +303,7 @@ bb
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalLeaves, equals(6));
       expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
@@ -338,7 +338,7 @@ bb
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(4));
+      expect(asciiArtTree.totalLeaves, equals(4));
       expect(asciiArtTree.totalNodes, equals(5));
 
       expect(
@@ -365,7 +365,7 @@ root
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(4));
+      expect(asciiArtTree.totalLeaves, equals(4));
       expect(asciiArtTree.totalNodes, equals(9));
 
       expect(
@@ -395,7 +395,7 @@ root
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(4));
+      expect(asciiArtTree.totalLeaves, equals(4));
       expect(asciiArtTree.totalNodes, equals(9));
 
       expect(
@@ -426,7 +426,7 @@ root
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(4));
+      expect(asciiArtTree.totalLeaves, equals(4));
       expect(asciiArtTree.totalNodes, equals(8));
 
       expect(
@@ -458,7 +458,7 @@ root
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalLeaves, equals(6));
       expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
@@ -495,7 +495,7 @@ workspace-assets
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalLeaves, equals(6));
       expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
@@ -532,8 +532,10 @@ b
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(6));
+      expect(asciiArtTree.totalRoots, equals(2));
+      expect(asciiArtTree.totalLeaves, equals(6));
       expect(asciiArtTree.totalNodes, equals(13));
+      expect(asciiArtTree.roots, equals(['aa', 'bb']));
 
       expect(
           generateTreeText,
@@ -567,7 +569,7 @@ bb
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(4));
+      expect(asciiArtTree.totalLeaves, equals(4));
       expect(asciiArtTree.totalNodes, equals(9));
 
       expect(
@@ -608,7 +610,7 @@ root
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(4));
+      expect(asciiArtTree.totalLeaves, equals(4));
       expect(asciiArtTree.totalNodes, equals(9));
 
       expect(
@@ -638,8 +640,10 @@ root
 
       print('\n\n$generateTreeText');
 
-      expect(asciiArtTree.totalLeafs, equals(4));
+      expect(asciiArtTree.totalRoots, equals(1));
+      expect(asciiArtTree.totalLeaves, equals(4));
       expect(asciiArtTree.totalNodes, equals(11));
+      expect(asciiArtTree.roots, equals(['/']));
 
       expect(
           generateTreeText,
@@ -681,8 +685,385 @@ root
 
       expect(asciiArtTree2.generate(), equals(generateTreeText));
 
-      expect(asciiArtTree2.totalLeafs, equals(4));
+      expect(asciiArtTree2.totalLeaves, equals(4));
       expect(asciiArtTree2.totalNodes, equals(11));
+    });
+
+    test('graph 1', () async {
+      var asciiArtTree = ASCIIArtTree({
+        'a': {
+          'b': {
+            'c': {
+              'f': {'x': null}
+            },
+            'd': {
+              'e': {'f': 'f'}
+            },
+          }
+        }
+      }, allowGraphs: true);
+
+      var generateTreeText = asciiArtTree.generate();
+
+      print('\n\n$generateTreeText');
+
+      expect(asciiArtTree.totalLeaves, equals(1));
+      expect(asciiArtTree.totalNodes, equals(7));
+
+      expect(
+          generateTreeText,
+          '''
+a
+└─┬─ b
+  ├─┬─ c
+  │ └─┬─ f
+  │   └──> x
+  └─┬─ d
+    └─┬─ e
+      └─┬─ f ººº
+'''
+              .trimLeft());
+
+      var json = asciiArtTree.toJson();
+
+      expect(
+          json,
+          equals({
+            'a': {
+              'b': {
+                'c': {
+                  'f': {'x': null}
+                },
+                'd': {
+                  'e': {'f': 'f'}
+                }
+              }
+            }
+          }));
+
+      var asciiArtTree2 = ASCIIArtTree.fromJson(json, allowGraphs: true);
+
+      expect(asciiArtTree2.generate(), equals(generateTreeText));
+
+      expect(asciiArtTree2.totalLeaves, equals(1));
+      expect(asciiArtTree2.totalNodes, equals(7));
+    });
+
+    test('graph 1 (expandGraphs)', () async {
+      var asciiArtTree = ASCIIArtTree({
+        'a': {
+          'b': {
+            'c': {
+              'f': {'x': null}
+            },
+            'd': {
+              'e': {'f': 'f'}
+            },
+          }
+        }
+      }, allowGraphs: true);
+
+      var generateTreeText = asciiArtTree.generate(expandGraphs: true);
+
+      print('\n\n$generateTreeText');
+
+      expect(asciiArtTree.totalLeaves, equals(1));
+      expect(asciiArtTree.totalNodes, equals(7));
+
+      expect(
+          generateTreeText,
+          '''
+a
+└─┬─ b
+  ├─┬─ c
+  │ └─┬─ f
+  │   └──> x
+  └─┬─ d
+    └─┬─ e
+      └─┬─ f
+        └──> x
+'''
+              .trimLeft());
+
+      var json = asciiArtTree.toJson();
+
+      expect(
+          json,
+          equals({
+            'a': {
+              'b': {
+                'c': {
+                  'f': {'x': null}
+                },
+                'd': {
+                  'e': {'f': 'f'}
+                }
+              }
+            }
+          }));
+
+      var asciiArtTree2 = ASCIIArtTree.fromJson(json, allowGraphs: true);
+
+      expect(
+          asciiArtTree2.generate(expandGraphs: true), equals(generateTreeText));
+
+      expect(asciiArtTree2.totalLeaves, equals(1));
+      expect(asciiArtTree2.totalNodes, equals(7));
+    });
+
+    test('graph 2', () async {
+      var asciiArtTree = ASCIIArtTree({
+        'a': {
+          'b': {
+            'c': {
+              'f': {'x': null}
+            },
+            'd': {
+              'e': {
+                'f': {'y': null}
+              }
+            },
+          }
+        }
+      }, allowGraphs: true);
+
+      var generateTreeText = asciiArtTree.generate();
+
+      print('\n\n$generateTreeText');
+
+      expect(asciiArtTree.totalLeaves, equals(2));
+      expect(asciiArtTree.totalNodes, equals(8));
+      expect(asciiArtTree.leaves, equals(['x', 'y']));
+
+      expect(
+          generateTreeText,
+          '''
+a
+└─┬─ b
+  ├─┬─ c
+  │ └─┬─ f
+  │   ├──> x
+  │   └──> y
+  └─┬─ d
+    └─┬─ e
+      └─┬─ f ººº
+'''
+              .trimLeft());
+    });
+
+    test('graph 2 (expandGraphs)', () async {
+      var asciiArtTree = ASCIIArtTree({
+        'a': {
+          'b': {
+            'c': {
+              'f': {'x': null}
+            },
+            'd': {
+              'e': {
+                'f': {'y': null}
+              }
+            },
+          }
+        }
+      }, allowGraphs: true);
+
+      var generateTreeText = asciiArtTree.generate(expandGraphs: true);
+
+      print('\n\n$generateTreeText');
+
+      expect(asciiArtTree.totalLeaves, equals(2));
+      expect(asciiArtTree.totalNodes, equals(8));
+      expect(asciiArtTree.leaves, equals(['x', 'y']));
+
+      expect(
+          generateTreeText,
+          '''
+a
+└─┬─ b
+  ├─┬─ c
+  │ └─┬─ f
+  │   ├──> x
+  │   └──> y
+  └─┬─ d
+    └─┬─ e
+      └─┬─ f
+        ├──> x
+        └──> y
+'''
+              .trimLeft());
+
+      var json = asciiArtTree.toJson();
+
+      expect(
+          json,
+          equals({
+            'a': {
+              'b': {
+                'c': {
+                  'f': {'x': null, 'y': null}
+                },
+                'd': {
+                  'e': {'f': 'f'}
+                }
+              }
+            }
+          }));
+
+      var asciiArtTree2 = ASCIIArtTree.fromJson(json, allowGraphs: true);
+
+      expect(
+          asciiArtTree2.generate(expandGraphs: true), equals(generateTreeText));
+
+      expect(asciiArtTree2.totalLeaves, equals(2));
+      expect(asciiArtTree2.totalNodes, equals(8));
+    });
+
+    test('graph 3 (node ref error)', () async {
+      expect(
+          () => ASCIIArtTree({
+                'a': {
+                  'b': {
+                    'c': {
+                      'f': {'x': null}
+                    },
+                    'd': {
+                      'e': {'f': 'z'}
+                    },
+                  }
+                }
+              }, allowGraphs: true),
+          throwsStateError);
+    });
+
+    test('graph 3 (node type error)', () async {
+      expect(
+          () => ASCIIArtTree({
+                'a': {
+                  'b': {
+                    'c': {
+                      'f': {
+                        'x': ['!']
+                      }
+                    },
+                    'd': {
+                      'e': {'f': 'f'}
+                    },
+                  }
+                }
+              }, allowGraphs: true),
+          throwsStateError);
+    });
+
+    test('graph 4 (expandGraphs)', () async {
+      var asciiArtTree = ASCIIArtTree({
+        'a': {
+          'b': {
+            'c': {'f': 'f'},
+            'd': {
+              'e': {
+                'f': {'g': null}
+              }
+            },
+          }
+        }
+      }, allowGraphs: true);
+
+      var generateTreeText = asciiArtTree.generate(expandGraphs: true);
+
+      print('\n\n$generateTreeText');
+
+      expect(asciiArtTree.totalRoots, equals(1));
+      expect(asciiArtTree.totalLeaves, equals(1));
+      expect(asciiArtTree.totalNodes, equals(7));
+      expect(asciiArtTree.roots, equals(['a']));
+      expect(asciiArtTree.leaves, equals(['g']));
+
+      expect(
+          generateTreeText,
+          '''
+a
+└─┬─ b
+  ├─┬─ c
+  │ └─┬─ f
+  │   └──> g
+  └─┬─ d
+    └─┬─ e
+      └─┬─ f
+        └──> g
+'''
+              .trimLeft());
+    });
+
+    test('graph 5', () async {
+      var asciiArtTree = ASCIIArtTree({
+        'a': {
+          'b': {
+            'c': {'f': null},
+            'd': {
+              'e': {'f': 'f'}
+            },
+          }
+        }
+      }, allowGraphs: true);
+
+      var generateTreeText = asciiArtTree.generate();
+
+      print('\n\n$generateTreeText');
+
+      expect(asciiArtTree.totalRoots, equals(1));
+      expect(asciiArtTree.totalLeaves, equals(1));
+      expect(asciiArtTree.totalNodes, equals(6));
+      expect(asciiArtTree.roots, equals(['a']));
+      expect(asciiArtTree.leaves, equals(['f']));
+
+      expect(
+          generateTreeText,
+          '''
+a
+└─┬─ b
+  ├─┬─ c
+  │ └──> f
+  └─┬─ d
+    └─┬─ e
+      └──> f ººº
+'''
+              .trimLeft());
+    });
+
+    test('graph 5 (expandGraphs)', () async {
+      var asciiArtTree = ASCIIArtTree({
+        'a': {
+          'b': {
+            'c': {'f': null},
+            'd': {
+              'e': {'f': 'f'}
+            },
+          }
+        }
+      }, allowGraphs: true);
+
+      var generateTreeText = asciiArtTree.generate(expandGraphs: true);
+
+      print('\n\n$generateTreeText');
+
+      expect(asciiArtTree.totalRoots, equals(1));
+      expect(asciiArtTree.totalLeaves, equals(1));
+      expect(asciiArtTree.totalNodes, equals(6));
+      expect(asciiArtTree.roots, equals(['a']));
+      expect(asciiArtTree.leaves, equals(['f']));
+
+      expect(
+          generateTreeText,
+          '''
+a
+└─┬─ b
+  ├─┬─ c
+  │ └──> f
+  └─┬─ d
+    └─┬─ e
+      └──> f
+'''
+              .trimLeft());
     });
   });
 }
