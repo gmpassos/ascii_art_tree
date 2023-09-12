@@ -240,33 +240,39 @@ class ASCIIArtTree {
       {String indent = '',
       bool trim = false,
       ASCIIArtTreeStyle? style,
-      bool expandGraphs = false}) {
+      bool expandGraphs = false,
+      bool hideReferences = false,
+      String referenceMark = 'ººº'}) {
     if (tree.isEmpty) return '';
 
     style ??= this.style;
 
     final isElegant = style == ASCIIArtTreeStyle.elegant;
 
+    final processed = <String>{};
+
     List<String> treesTexts;
 
     if (tree.length > 1) {
       treesTexts = tree.entries.map((e) {
-        String? root;
+        String? rootLine;
         if (!isElegant) {
-          root = e.key.length > 1 ? '   ' : '  ';
+          rootLine = e.key.length > 1 ? '   ' : '  ';
         }
-        return _buildTree(Map.fromEntries([e]),
-                rootLine: root, expandGraphs: expandGraphs)
+        return _buildTree(Map.fromEntries([e]), rootLine, expandGraphs,
+                hideReferences, referenceMark, processed)
             .toString();
       }).toList();
     } else {
-      String? root;
+      String? rootLine;
       if (!isElegant) {
-        root = tree.keys.first.length > 1 ? '   ' : '  ';
+        rootLine = tree.keys.first.length > 1 ? '   ' : '  ';
       }
 
       treesTexts = [
-        _buildTree(tree, rootLine: root, expandGraphs: expandGraphs).toString()
+        _buildTree(tree, rootLine, expandGraphs, hideReferences, referenceMark,
+                processed)
+            .toString()
       ];
     }
 
@@ -307,8 +313,13 @@ class ASCIIArtTree {
   String? Function(List<String> parents, Map<String, dynamic> node, String key)?
       pathInfoProvider;
 
-  StringBuffer _buildTree(Map<String, dynamic> rootNode,
-      {String? rootLine, bool expandGraphs = false}) {
+  StringBuffer _buildTree(
+      Map<String, dynamic> rootNode,
+      String? rootLine,
+      bool expandGraphs,
+      bool hideReferences,
+      String referenceMark,
+      final Set<String> processed) {
     final stringBuffer = StringBuffer();
 
     final pathInfoProvider = this.pathInfoProvider;
@@ -328,8 +339,6 @@ class ASCIIArtTree {
         Map<String, dynamic> node, List<String>? parents, int level) {
       return node.entries.mapIndexed((i, e) => [i, node, e, parents, level]);
     }
-
-    final processed = <String>{};
 
     final queue = ListQueue<List>();
     queue.addAll(buildTasks(rootNode, null, 0));
@@ -379,7 +388,10 @@ class ASCIIArtTree {
 
         // Already processed node. If NOT `expandGraphs`, not writing it again:
         if (!expandGraphs && allowGraphs && !processed.add(nodeKey)) {
-          stringBuffer.write('$indent$conn$arrow$importStripped ººº\n');
+          if (!hideReferences) {
+            stringBuffer
+                .write('$indent$conn$arrow$importStripped $referenceMark\n');
+          }
           continue;
         }
 

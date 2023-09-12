@@ -1,3 +1,7 @@
+## 1.0.6 
+
+`ASCIIArtTree.generate`: added parameter `hideReferences`
+
 ## 1.0.5
 
 - `ASCIIArtTree`:
