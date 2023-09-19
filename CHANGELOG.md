@@ -1,6 +1,12 @@
 ## 1.0.6 
 
-`ASCIIArtTree.generate`: added parameter `hideReferences`
+-`ASCIIArtTree`:
+  - Using `Graph` as internal representation.
+  - `generate`:
+    - added parameter `hideReferences` and `expandSideBranches`.
+    - Using `GraphWalker`.
+
+- graph_explorer: ^1.0.1
 
 ## 1.0.5
 
