@@ -1,6 +1,6 @@
 name: ascii_art_tree
 description: A minimalistic ASCII Art Tree generator with multiple styles.
-version: 1.1.1
+version: 1.1.2
 repository: https://github.com/gmpassos/ascii_art_tree
 
 environment:
@@ -11,7 +11,7 @@ executables:
 
 dependencies:
   path: ^1.9.1
-  graph_explorer: ^1.1.1
+  graph_explorer: ^1.1.2
 
 dev_dependencies:
   lints: ^6.1.0

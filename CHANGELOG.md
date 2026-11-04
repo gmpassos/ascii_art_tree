@@ -1,3 +1,9 @@
+## 1.1.2
+
+- graph_explorer: ^1.1.2
+  - Fixes `GraphWalker` `maxDepth` in DFS walks (a node reached again within `maxDepth` could be
+    skipped), which affects side-branch expansion (`walkByNodes(expandSideBranches: ...)`).
+
 ## 1.1.1
 
 - graph_explorer: ^1.1.1, which fixes `Graph.fromJson` for non-`String` node values and
