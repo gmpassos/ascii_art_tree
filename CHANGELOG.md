@@ -1,3 +1,11 @@
+## 1.1.3
+
+- graph_explorer: ^1.2.0
+  - `sortByInputDependency` is now stable: siblings tied by input dependency keep their insertion
+    order (they were reversed). With `expandSideBranches: true`, tied side branches now render in
+    insertion order (test golden updated).
+  - Also brings truly shortest `depth`/`shortestPathToRoot` and an exact DFS `maxDepth`.
+
 ## 1.1.2
 
 - graph_explorer: ^1.1.2
