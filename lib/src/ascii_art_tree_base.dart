@@ -28,7 +28,7 @@ class ASCIIArtTreeNode {
     if (other is ASCIIArtTreeNode) {
       return runtimeType == other.runtimeType && graphKey == other.graphKey;
     }
-    // When accessing a JSON node:
+    // Compared with a JSON key (the local key):
     else if (other is String) {
       return key == other;
     }
