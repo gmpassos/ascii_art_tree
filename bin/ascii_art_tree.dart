@@ -101,8 +101,8 @@ ASCIIArtTree _loadFromJSON(String content) {
   var json = dart_convert.json.decode(content);
 
   if (json is! Map) {
-    print(
-      '** Loaded JSON is not a `Map`. Loaded JSON type: ${json.runtimeType}',
+    stderr.write(
+      '** Loaded JSON is not a `Map`. Loaded JSON type: ${json.runtimeType}\n',
     );
     exit(1);
   }

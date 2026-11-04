@@ -42,8 +42,9 @@ class ASCIIArtTreeNode {
     }
   }
 
+  // Consistent with `==` between nodes, which compares [graphKey].
   @override
-  int get hashCode => key.hashCode;
+  int get hashCode => graphKey.hashCode;
 
   @override
   String toString() => key;
