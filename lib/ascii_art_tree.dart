@@ -1,4 +1,4 @@
 /// ASCII Art Tree library
-library ascii_art_tree;
+library;
 
 export 'src/ascii_art_tree_base.dart';

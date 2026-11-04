@@ -1,3 +1,29 @@
+## 1.1.0
+
+- Fix: on current Dart runtimes every tree was rendered as just its root node.
+  - `Graph.fromJson` looks up each node's JSON entry by node value, and the runtime
+    compares map keys using the stored `String` key's `==`, so the lookup never matched.
+  - The input tree is now copied into maps that resolve node keys explicitly
+    (iteratively, preserving shared maps). The caller's input map is no longer modified.
+- New public `ASCIIArtTreeNode`: the node value type of `ASCIIArtTree.graph`
+  (previously private while exposed by `graph` and `ASCIIArtTree.fromGraph`).
+  - `hashCode` is now consistent with `==` (both use `graphKey`).
+- `Graph.toASCIIArtTree`: fix `keyCast` being ignored.
+- CLI:
+  - Fix detection of `.json` files.
+  - Accept style flags before the file path.
+  - Document `--from-json` and `--to-json`; errors go to `stderr`.
+- Improved test coverage: all styles, edge cases, graphs, side branches and the CLI.
+
+- sdk: ^3.13.0
+- path: ^1.9.1
+- collection: ^1.19.1
+- graph_explorer: ^1.1.0
+- lints: ^6.1.0
+- dependency_validator: ^5.1.0
+- test: ^1.33.0
+- coverage: ^1.16.0
+
 ## 1.0.6 
 
 -`ASCIIArtTree`:
