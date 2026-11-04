@@ -1,7 +1,5 @@
-import 'dart:collection' show MapBase;
 import 'dart:math' as math;
 
-import 'package:collection/collection.dart';
 import 'package:graph_explorer/graph_explorer.dart';
 
 /// ASCII Art Tree Styles.
@@ -50,70 +48,47 @@ class ASCIIArtTreeNode {
   String toString() => key;
 }
 
-/// A JSON tree node that can also be looked up by [ASCIIArtTreeNode].
+/// Copies [tree] into `Map<String, dynamic>`s, stringifying the keys.
 ///
-/// `Graph.fromJson` looks up each node's JSON entry using the node value (an
-/// [ASCIIArtTreeNode]) as the key. A plain `Map<String, dynamic>` never
-/// matches it: the Dart runtime compares a lookup key with the *stored* key's
-/// `==` (`String.==`), so the asymmetric `ASCIIArtTreeNode == String` is never
-/// consulted, and every tree collapsed to its root node.
-class _JsonNode extends MapBase<String, dynamic> {
-  final Map<String, dynamic> _entries = <String, dynamic>{};
+/// `Graph.fromJson` needs `String` keys at every level and merges the
+/// definitions of a node referenced more than once into its JSON node
+/// (`addAll`), so the caller's [tree] is copied rather than used directly.
+///
+/// Iterative (not recursive) to support deep trees. A [Map] referenced more
+/// than once (or cyclically) is copied only once, preserving the sharing.
+Map<String, dynamic> _copyJsonTree(Map tree) {
+  final copies = Map<Map, Map<String, dynamic>>.identity();
+  final pending = <Map>[];
 
-  static Object? _keyOf(Object? key) => key is ASCIIArtTreeNode ? key.key : key;
-
-  @override
-  dynamic operator [](Object? key) => _entries[_keyOf(key)];
-
-  @override
-  void operator []=(String key, dynamic value) => _entries[key] = value;
-
-  @override
-  bool containsKey(Object? key) => _entries.containsKey(_keyOf(key));
-
-  @override
-  dynamic remove(Object? key) => _entries.remove(_keyOf(key));
-
-  @override
-  void clear() => _entries.clear();
-
-  @override
-  Iterable<String> get keys => _entries.keys;
-
-  @override
-  int get length => _entries.length;
-
-  /// Copies [tree] into [_JsonNode]s, stringifying the keys.
-  ///
-  /// Iterative (not recursive) to support deep trees. A [Map] referenced more
-  /// than once (or cyclically) is copied only once, preserving the sharing.
-  static _JsonNode from(Map tree) {
-    final copies = Map<Map, _JsonNode>.identity();
-    final pending = <Map>[];
-
-    _JsonNode copyOf(Map map) {
-      var copy = copies[map];
-      if (copy == null) {
-        copies[map] = copy = _JsonNode();
-        pending.add(map);
-      }
-      return copy;
+  Map<String, dynamic> copyOf(Map map) {
+    var copy = copies[map];
+    if (copy == null) {
+      copies[map] = copy = <String, dynamic>{};
+      pending.add(map);
     }
-
-    final root = copyOf(tree);
-
-    while (pending.isNotEmpty) {
-      final map = pending.removeLast();
-      final copy = copies[map]!;
-      for (final e in map.entries) {
-        final value = e.value;
-        copy[e.key.toString()] = value is Map ? copyOf(value) : value;
-      }
-    }
-
-    return root;
+    return copy;
   }
+
+  final root = copyOf(tree);
+
+  while (pending.isNotEmpty) {
+    final map = pending.removeLast();
+    final copy = copies[map]!;
+    for (final e in map.entries) {
+      final value = e.value;
+      copy[e.key.toString()] = value is Map ? copyOf(value) : value;
+    }
+  }
+
+  return root;
 }
+
+/// A line of a rendered tree: the tree structure (indentation, bars,
+/// connector and arrow) and the node label (including any path info or
+/// reference mark).
+///
+/// Kept apart so the styles only rewrite the structure, never a label.
+typedef _TreeLine = ({String prefix, String label});
 
 /// ASCII Art Tree generator.
 class ASCIIArtTree {
@@ -162,7 +137,7 @@ class ASCIIArtTree {
     this.allowGraphs = false,
   }) {
     _graph = Graph<ASCIIArtTreeNode>.fromJson(
-      _JsonNode.from(tree),
+      _copyJsonTree(tree),
       nodeValueMapper: _jsonToNode,
     );
   }
@@ -310,10 +285,10 @@ class ASCIIArtTree {
       maxExpansion: _defaultMaxExpansion,
     );
 
-    var treesTexts = <String>[];
+    var trees = <List<_TreeLine>>[];
 
     for (var e in _graph.rootValues) {
-      var treeText = _buildTree(
+      var treeLines = _buildTree(
         graphWalker,
         e,
         expandGraphs,
@@ -323,50 +298,36 @@ class ASCIIArtTree {
         style == ASCIIArtTreeStyle.elegant,
       );
 
-      treesTexts.add(treeText);
+      trees.add(treeLines);
     }
 
     switch (style) {
       case ASCIIArtTreeStyle.spaces:
         {
-          var text = treesTexts.map((t) => _simplifyStyle(t, ' ')).join();
+          var text = trees.map((t) => _simplifyStyle(t, ' ')).join();
           return _applyIndent(indent, text, trim: trim);
         }
       case ASCIIArtTreeStyle.dots:
         {
-          var text = treesTexts.map((t) => _simplifyStyle(t, '.')).join();
+          var text = trees.map((t) => _simplifyStyle(t, '.')).join();
           return _applyIndent(indent, text, trim: trim);
         }
       case ASCIIArtTreeStyle.elegant:
         {
-          var text = treesTexts.map((t) => _fixElegantTree(t)).join();
+          var text = trees.map((t) => _fixElegantTree(t)).join();
           return _applyIndent(indent, text, trim: trim);
         }
     }
   }
 
-  String _applyIndent(
-    String indent,
-    String text, {
-    bool trim = false,
-    String? indent0,
-  }) {
+  String _applyIndent(String indent, String text, {bool trim = false}) {
     if (trim) {
       text = text.trim();
     }
 
     if (indent.isEmpty) return text;
-    var lines = text.split('\n');
 
-    Iterable<String> lines2;
-    if (indent0 != null) {
-      lines2 = lines.mapIndexed((i, l) => '${i == 0 ? indent0 : indent}$l');
-    } else {
-      lines2 = lines.map((l) => '$indent$l');
-    }
-
-    var text2 = lines2.join('\n');
-    return text2;
+    return text.split('\n').map((l) => '$indent$l').join('\n');
   }
 
   final _sideBranchBar = '╠';
@@ -377,7 +338,7 @@ class ASCIIArtTree {
   String? Function(List<String> parents, Map<String, dynamic> node, String key)?
   pathInfoProvider;
 
-  String _buildTree(
+  List<_TreeLine> _buildTree(
     GraphWalker<ASCIIArtTreeNode> graphWalker,
     ASCIIArtTreeNode rootValue,
     bool expandGraphs,
@@ -393,7 +354,7 @@ class ASCIIArtTree {
 
     var rootNodes = _graph.valuesToNodes([rootValue]);
 
-    final stringBuffer = StringBuffer();
+    final treeLines = <_TreeLine>[];
 
     final pathInfoProvider = this.pathInfoProvider;
 
@@ -450,9 +411,10 @@ class ASCIIArtTree {
       // Already processed node. If NOT `expandGraphs`, not writing it again:
       if (!expandGraphs && allowGraphs && (processed[node] ?? 0) >= 2) {
         if (!hideReferences) {
-          stringBuffer.write(
-            '$indent$conn$arrow$importStripped $referenceMark\n',
-          );
+          treeLines.add((
+            prefix: '$indent$conn$arrow',
+            label: '$importStripped $referenceMark',
+          ));
         }
         return GraphWalkingInstruction.next();
       }
@@ -478,7 +440,10 @@ class ASCIIArtTree {
         conn = _sideBranchBar;
       }
 
-      stringBuffer.write('$indent$conn$arrow$importStripped$pathInfo\n');
+      treeLines.add((
+        prefix: '$indent$conn$arrow',
+        label: '$importStripped$pathInfo',
+      ));
 
       return null;
     }
@@ -490,7 +455,7 @@ class ASCIIArtTree {
       outputsProvider: (step, node) => node.outputs,
     );
 
-    return stringBuffer.toString();
+    return treeLines;
   }
 
   String _stripPrefix(String? prefix, String path) {
@@ -508,10 +473,16 @@ class ASCIIArtTree {
   }
 
   static final _regExpNoSpace = RegExp(r'\S');
-  static final _regExpSpace = RegExp(r'\s');
 
-  String _fixElegantTree(String treeText) {
-    var lines = treeText.split('\n');
+  /// Joins the lines of a tree. Like the generated text, ends with a new line.
+  static String _joinTreeLines(Iterable<String> lines) =>
+      '${lines.join('\n')}\n';
+
+  String _fixElegantTree(List<_TreeLine> treeLines) {
+    // Only the tree structure is fixed: labels may contain any character,
+    // including the box-drawing ones used by this style.
+    // The final blank entry stands for the text after the last line.
+    var lines = [for (var l in treeLines) l.prefix, ''];
 
     final length = lines.length;
     final limit = length - 1;
@@ -561,17 +532,17 @@ class ASCIIArtTree {
 
       if (idx < 0) continue;
 
-      if (idx < next.length) {
-        var nextChar = next[idx];
+      // Nothing continues below this connector (its following siblings were
+      // hidden): it is the last one drawn, so it becomes a corner.
+      var nextChar = idx < next.length ? next[idx] : ' ';
 
-        if (nextChar == ' ') {
-          var char = line[idx];
-          var sideBranch = char == _sideBranchBar;
+      if (nextChar == ' ') {
+        var char = line[idx];
+        var sideBranch = char == _sideBranchBar;
 
-          var corner = sideBranch ? '╚' : '└';
+        var corner = sideBranch ? '╚' : '└';
 
-          lines[i] = line.substring(0, idx) + corner + line.substring(idx + 1);
-        }
+        lines[i] = line.substring(0, idx) + corner + line.substring(idx + 1);
       }
     }
 
@@ -602,27 +573,28 @@ class ASCIIArtTree {
       lines[i] = line.replaceAll('╦─', '╦═').replaceAll('═┬─', '═╦═');
     }
 
-    var treeText2 = lines.join('\n');
-    return treeText2;
+    return _joinTreeLines([
+      for (var i = 0; i < treeLines.length; ++i) lines[i] + treeLines[i].label,
+    ]);
   }
 
-  String _simplifyStyle(String treeText, String c) {
-    var lines = treeText.split('\n');
-    if (lines.isEmpty) return treeText;
+  String _simplifyStyle(List<_TreeLine> treeLines, String c) {
+    // The indentation of each label: its prefix without the connector and
+    // arrow (`├─┬─ `, `└──> `). The root (no prefix) is not indented.
+    var linesIndented = [
+      for (var l in treeLines)
+        MapEntry(math.max(0, l.prefix.length - 5), l.label),
+    ];
 
-    var linesIndented = _toLinesIndented(lines).toList();
-
-    if (linesIndented[0].value == '') {
+    // A blank root (see `ASCIIArtTree.fromStringPaths(blankRoot: '')`)
+    // is not rendered:
+    if (linesIndented.isNotEmpty && linesIndented[0].value == '') {
       linesIndented.removeAt(0);
     }
 
-    var needsFinalBlankLine = false;
-    if (linesIndented.last.value == '') {
-      linesIndented.removeLast();
-      needsFinalBlankLine = true;
-    }
+    if (linesIndented.isEmpty) return '';
 
-    var min = linesIndented.map((e) => e.key).reduce((v, e) => math.min(v, e));
+    final min = linesIndented.map((e) => e.key).reduce(math.min);
 
     if (min > 0) {
       linesIndented = linesIndented
@@ -630,30 +602,8 @@ class ASCIIArtTree {
           .toList();
     }
 
-    if (needsFinalBlankLine) {
-      linesIndented.add(MapEntry(0, ''));
-    }
-
-    var lines2 = linesIndented.map((e) => (c * e.key) + e.value).toList();
-
-    var treeText2 = lines2.join('\n');
-    return treeText2;
+    return _joinTreeLines(linesIndented.map((e) => (c * e.key) + e.value));
   }
-
-  Iterable<MapEntry<int, String>> _toLinesIndented(List<String> lines) =>
-      lines.map((line) {
-        var idx1 = line.indexOf(_regExpNoSpace);
-        if (idx1 < 0) return MapEntry(0, line);
-
-        var idx2 = line.indexOf(_regExpSpace, idx1 + 1);
-        if (idx2 < 0) return MapEntry(0, line);
-
-        var indent = (idx2 - 4).clamp(0, idx2);
-
-        var path = line.substring(idx2 + 1);
-
-        return MapEntry(indent, path);
-      }).toList();
 
   dynamic toJson() => _graph.toJson();
 }
@@ -670,18 +620,11 @@ extension ASCIIArtTreeGraphExtension<T> on Graph<T> {
     bool sortByInputDependency = true,
     String Function(T value)? keyCast,
   }) {
-    // Same as `toTree<String>(...)`, but `Graph.toTree` does not forward
-    // `keyCast` to the walker (graph_explorer 1.1.0), so it is ignored there.
-    var tree =
-        GraphWalker<T>(
-          sortByInputDependency: sortByInputDependency,
-          bfs: true,
-        ).toTreeFrom<String>(
-          roots.map((e) => e.value).toList(),
-          nodeProvider: (s, v) => getNode(v),
-          outputsProvider: (s, n) => n.outputs,
-          keyCast: keyCast == null ? null : (s, v) => keyCast(v),
-        );
+    var tree = toTree<String>(
+      keyCast: keyCast,
+      sortByInputDependency: sortByInputDependency,
+      bfs: true,
+    );
 
     return ASCIIArtTree(
       tree,
