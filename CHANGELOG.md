@@ -1,3 +1,24 @@
+## 1.1.1
+
+- graph_explorer: ^1.1.1, which fixes `Graph.fromJson` for non-`String` node values and
+  `Graph.toTree` ignoring `keyCast`:
+  - The input tree is still copied (to stringify keys and keep the caller's map unmodified),
+    but into plain `Map`s: the lookup-by-node workaround map class was removed.
+  - `Graph.toASCIIArtTree` now uses `Graph.toTree`.
+- `generate`: the styles now rewrite only the tree structure of each line, never the labels:
+  - Fix: labels containing box-drawing characters (`├`, `╚─`, `═┬─`, ...) were altered by
+    the `elegant` style.
+  - Fix: `dots` and `spaces` dropped a root label up to its first space (`my dir` rendered
+    as `dir`), and a root's `pathInfoProvider` info replaced the root label.
+  - Fix: `dots` and `spaces` threw a `StateError` for a tree with only a blank root.
+  - Fix: with `hideReferences`, a connector before hidden references at the end of a tree
+    was not turned into a corner (`├` instead of `└`).
+- Removed the unused `collection` dependency.
+- Tests: golden outputs for every style (wide, deep, multi-root, unicode, special
+  characters), path delimiters, JSON round-trips and CLI end-to-end. Line coverage: 100%.
+
+- graph_explorer: ^1.1.1
+
 ## 1.1.0
 
 - Fix: on current Dart runtimes every tree was rendered as just its root node.
