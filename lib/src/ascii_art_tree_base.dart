@@ -660,6 +660,8 @@ class ASCIIArtTree {
 
 extension ASCIIArtTreeGraphExtension<T> on Graph<T> {
   /// Returns an [ASCIIArtTree] of this graph.
+  /// - [keyCast] converts each node value to its tree key
+  ///   (defaults to `toString()`).
   ASCIIArtTree toASCIIArtTree({
     String? stripPrefix,
     String? stripSuffix,
@@ -668,11 +670,18 @@ extension ASCIIArtTreeGraphExtension<T> on Graph<T> {
     bool sortByInputDependency = true,
     String Function(T value)? keyCast,
   }) {
-    var tree = toTree<String>(
-      keyCast: keyCast,
-      sortByInputDependency: sortByInputDependency,
-      bfs: true,
-    );
+    // Same as `toTree<String>(...)`, but `Graph.toTree` does not forward
+    // `keyCast` to the walker (graph_explorer 1.1.0), so it is ignored there.
+    var tree =
+        GraphWalker<T>(
+          sortByInputDependency: sortByInputDependency,
+          bfs: true,
+        ).toTreeFrom<String>(
+          roots.map((e) => e.value).toList(),
+          nodeProvider: (s, v) => getNode(v),
+          outputsProvider: (s, n) => n.outputs,
+          keyCast: keyCast == null ? null : (s, v) => keyCast(v),
+        );
 
     return ASCIIArtTree(
       tree,
