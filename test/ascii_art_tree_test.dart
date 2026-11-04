@@ -4,14 +4,18 @@ import 'package:test/test.dart';
 void main() {
   group('ASCIITree', () {
     test('generateTreeText: default', () async {
-      var asciiArtTree = ASCIIArtTree.fromStringPaths([
-        'file:/x-root/dir1/subA/file1.txt',
-        'file:/x-root/dir1/subA/file2.txt',
-        'file:/x-root/dir1/subB/file1',
-        'file:/x-root/dir1/subB/file2',
-        'file:/x-root/dir1/subB/subB1/fileX',
-        'file:/x-root/dir1/subB/subB2/fileY',
-      ], stripPrefix: 'x-', stripSuffix: '.txt');
+      var asciiArtTree = ASCIIArtTree.fromStringPaths(
+        [
+          'file:/x-root/dir1/subA/file1.txt',
+          'file:/x-root/dir1/subA/file2.txt',
+          'file:/x-root/dir1/subB/file1',
+          'file:/x-root/dir1/subB/file2',
+          'file:/x-root/dir1/subB/subB1/fileX',
+          'file:/x-root/dir1/subB/subB2/fileY',
+        ],
+        stripPrefix: 'x-',
+        stripSuffix: '.txt',
+      );
 
       var generateTreeText = asciiArtTree.generate();
 
@@ -20,8 +24,8 @@ void main() {
       expect(asciiArtTree.totalLeaves, equals(6));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 file:
   └─┬─ root
     └─┬─ dir1
@@ -36,7 +40,8 @@ file:
         └─┬─ subB2
           └──> fileY
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: elegant 1', () async {
@@ -53,8 +58,8 @@ file:
       expect(asciiArtTree.totalNodes, equals(8));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 _X
  ├─┬─ dir1
  │ └─┬─ subA
@@ -64,7 +69,8 @@ _X
      └─┬─ subA
        └──> file2
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: elegant 2', () async {
@@ -85,8 +91,8 @@ _X
       expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 /
 └─┬─ root
   └─┬─ dir1
@@ -101,7 +107,8 @@ _X
       └─┬─ subB2
         └──> fileY
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: elegant 3', () async {
@@ -122,8 +129,8 @@ _X
       expect(asciiArtTree.totalNodes, equals(12));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 /
 └─┬─ workspace
   └─┬─ project-x
@@ -137,7 +144,8 @@ _X
         ├──> imgX.png
         └──> imgY.png
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: elegant 4', () async {
@@ -158,8 +166,8 @@ _X
       expect(asciiArtTree.totalNodes, equals(14));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 /
 ├─┬─ workspace-code
 │ └─┬─ project-x
@@ -175,7 +183,8 @@ _X
         ├──> imgX.png
         └──> imgY.png
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: elegant 5', () async {
@@ -196,8 +205,8 @@ _X
       expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 workspace-code
   └─┬─ project-x
     └─┬─ src
@@ -212,7 +221,8 @@ workspace-assets
         ├──> imgX.png
         └──> imgY.png
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: elegant 6', () async {
@@ -233,8 +243,8 @@ workspace-assets
       expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 a
 └─┬─ project-x
   └─┬─ src
@@ -249,7 +259,8 @@ b
       ├──> imgX.png
       └──> imgY.png
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: elegant 7', () async {
@@ -270,8 +281,8 @@ b
       expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 aa
  └─┬─ project-x
    └─┬─ src
@@ -286,7 +297,8 @@ bb
        ├──> imgX.png
        └──> imgY.png
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: elegant 8', () async {
@@ -307,8 +319,8 @@ bb
       expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 /
 └─┬─ workspace
   ├─┬─ project-code
@@ -323,16 +335,16 @@ bb
         ├──> imgX.png
         └──> imgY.png
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: elegant 9', () async {
-      var asciiArtTree = ASCIIArtTree.fromStringPaths([
-        'root/file1',
-        'root/file2',
-        'root/file3',
-        'root/file4',
-      ], stripPrefix: "file:", style: ASCIIArtTreeStyle.elegant);
+      var asciiArtTree = ASCIIArtTree.fromStringPaths(
+        ['root/file1', 'root/file2', 'root/file3', 'root/file4'],
+        stripPrefix: "file:",
+        style: ASCIIArtTreeStyle.elegant,
+      );
 
       var generateTreeText = asciiArtTree.generate();
 
@@ -342,24 +354,29 @@ bb
       expect(asciiArtTree.totalNodes, equals(5));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 root
   ├──> file1
   ├──> file2
   ├──> file3
   └──> file4
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: dots 1', () async {
-      var asciiArtTree = ASCIIArtTree.fromStringPaths([
-        'file:/root/dir1/subA/file1',
-        'file:/root/dir1/subA/file2',
-        'file:/root/dir1/subB/file1',
-        'file:/root/dir1/subB/file2',
-      ], stripPrefix: "file:", style: ASCIIArtTreeStyle.dots);
+      var asciiArtTree = ASCIIArtTree.fromStringPaths(
+        [
+          'file:/root/dir1/subA/file1',
+          'file:/root/dir1/subA/file2',
+          'file:/root/dir1/subB/file1',
+          'file:/root/dir1/subB/file2',
+        ],
+        stripPrefix: "file:",
+        style: ASCIIArtTreeStyle.dots,
+      );
 
       var generateTreeText = asciiArtTree.generate();
 
@@ -369,8 +386,8 @@ root
       expect(asciiArtTree.totalNodes, equals(9));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 root
 ..dir1
 ....subA
@@ -380,7 +397,8 @@ root
 ......file1
 ......file2
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: dots 2', () async {
@@ -399,8 +417,8 @@ root
       expect(asciiArtTree.totalNodes, equals(9));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 /
 .root
 ...dir1
@@ -411,7 +429,8 @@ root
 .......file1
 .......file2
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: dots 3', () async {
@@ -430,8 +449,8 @@ root
       expect(asciiArtTree.totalNodes, equals(8));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 root
 ..dir1
 ....subA
@@ -441,7 +460,8 @@ root
 ......file1
 ......file2
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: dots 4', () async {
@@ -462,8 +482,8 @@ root
       expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 workspace-code
 ..project-x
 ....src
@@ -478,7 +498,8 @@ workspace-assets
 ........imgX.png
 ........imgY.png
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: dots 5', () async {
@@ -499,8 +520,8 @@ workspace-assets
       expect(asciiArtTree.totalNodes, equals(13));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 a
 .project-x
 ...src
@@ -515,7 +536,8 @@ b
 .......imgX.png
 .......imgY.png
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: dots 6', () async {
@@ -538,8 +560,8 @@ b
       expect(asciiArtTree.roots, equals(['aa', 'bb']));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 aa
 ..project-x
 ....src
@@ -554,16 +576,21 @@ bb
 ........imgX.png
 ........imgY.png
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: spaces', () async {
-      var asciiArtTree = ASCIIArtTree.fromStringPaths([
-        '/root/dir1/subA/file1',
-        '/root/dir1/subA/file2',
-        '/root/dir1/subB/file1',
-        '/root/dir1/subB/file2',
-      ], blankRoot: '', style: ASCIIArtTreeStyle.spaces);
+      var asciiArtTree = ASCIIArtTree.fromStringPaths(
+        [
+          '/root/dir1/subA/file1',
+          '/root/dir1/subA/file2',
+          '/root/dir1/subB/file1',
+          '/root/dir1/subB/file2',
+        ],
+        blankRoot: '',
+        style: ASCIIArtTreeStyle.spaces,
+      );
 
       var generateTreeText = asciiArtTree.generate();
 
@@ -573,8 +600,8 @@ bb
       expect(asciiArtTree.totalNodes, equals(9));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 root
   dir1
     subA
@@ -584,16 +611,21 @@ root
       file1
       file2
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('generateTreeText: with pathInfoProvider', () async {
-      var asciiArtTree = ASCIIArtTree.fromStringPaths([
-        '/root/dir1/subA/file1',
-        '/root/dir1/subA/file2',
-        '/root/dir1/subB/file1',
-        '/root/dir1/subB/file2',
-      ], blankRoot: '', style: ASCIIArtTreeStyle.spaces);
+      var asciiArtTree = ASCIIArtTree.fromStringPaths(
+        [
+          '/root/dir1/subA/file1',
+          '/root/dir1/subA/file2',
+          '/root/dir1/subB/file1',
+          '/root/dir1/subB/file2',
+        ],
+        blankRoot: '',
+        style: ASCIIArtTreeStyle.spaces,
+      );
 
       asciiArtTree.pathInfoProvider = (parents, node, path) {
         var fullPath = [...parents, path].join('/');
@@ -614,8 +646,8 @@ root
       expect(asciiArtTree.totalNodes, equals(9));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 > root
 >   dir1
 >     subA
@@ -625,7 +657,8 @@ root
 >       file1 (y)
 >       file2
 '''
-              .trim());
+            .trim(),
+      );
     });
 
     test('toJson/fromJson', () async {
@@ -646,8 +679,8 @@ root
       expect(asciiArtTree.roots, equals(['/']));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 /
 .root
 ...dir1
@@ -660,28 +693,32 @@ root
 .....subC
 .......file4
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
 
       var json = asciiArtTree.toJson();
 
       expect(
-          json,
-          equals({
-            '/': {
-              'root': {
-                'dir1': {
-                  'subA': {'file1': null, 'file2': null}
-                },
-                'dir2': {
-                  'subB': {'file3': null},
-                  'subC': {'file4': null}
-                }
-              }
-            }
-          }));
+        json,
+        equals({
+          '/': {
+            'root': {
+              'dir1': {
+                'subA': {'file1': null, 'file2': null},
+              },
+              'dir2': {
+                'subB': {'file3': null},
+                'subC': {'file4': null},
+              },
+            },
+          },
+        }),
+      );
 
-      var asciiArtTree2 =
-          ASCIIArtTree.fromJson(json, style: ASCIIArtTreeStyle.dots);
+      var asciiArtTree2 = ASCIIArtTree.fromJson(
+        json,
+        style: ASCIIArtTreeStyle.dots,
+      );
 
       expect(asciiArtTree2.generate(), equals(generateTreeText));
 
@@ -694,13 +731,13 @@ root
         'a': {
           'b': {
             'c': {
-              'f': {'x': null}
+              'f': {'x': null},
             },
             'd': {
-              'e': {'f': 'f'}
+              'e': {'f': 'f'},
             },
-          }
-        }
+          },
+        },
       }, allowGraphs: true);
 
       var generateTreeText = asciiArtTree.generate();
@@ -711,8 +748,8 @@ root
       expect(asciiArtTree.totalNodes, equals(7));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 a
 └─┬─ b
   ├─┬─ c
@@ -722,24 +759,26 @@ a
     └─┬─ e
       └─┬─ f ººº
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
 
       var json = asciiArtTree.toJson();
 
       expect(
-          json,
-          equals({
-            'a': {
-              'b': {
-                'c': {
-                  'f': {'x': null}
-                },
-                'd': {
-                  'e': {'f': 'f'}
-                }
-              }
-            }
-          }));
+        json,
+        equals({
+          'a': {
+            'b': {
+              'c': {
+                'f': {'x': null},
+              },
+              'd': {
+                'e': {'f': 'f'},
+              },
+            },
+          },
+        }),
+      );
 
       var asciiArtTree2 = ASCIIArtTree.fromJson(json, allowGraphs: true);
 
@@ -754,13 +793,13 @@ a
         'a': {
           'b': {
             'c': {
-              'f': {'x': null}
+              'f': {'x': null},
             },
             'd': {
-              'e': {'f': 'f'}
+              'e': {'f': 'f'},
             },
-          }
-        }
+          },
+        },
       }, allowGraphs: true);
 
       var generateTreeText = asciiArtTree.generate(expandGraphs: true);
@@ -771,8 +810,8 @@ a
       expect(asciiArtTree.totalNodes, equals(7));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 a
 └─┬─ b
   ├─┬─ c
@@ -783,29 +822,33 @@ a
       └─┬─ f
         └──> x
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
 
       var json = asciiArtTree.toJson();
 
       expect(
-          json,
-          equals({
-            'a': {
-              'b': {
-                'c': {
-                  'f': {'x': null}
-                },
-                'd': {
-                  'e': {'f': 'f'}
-                }
-              }
-            }
-          }));
+        json,
+        equals({
+          'a': {
+            'b': {
+              'c': {
+                'f': {'x': null},
+              },
+              'd': {
+                'e': {'f': 'f'},
+              },
+            },
+          },
+        }),
+      );
 
       var asciiArtTree2 = ASCIIArtTree.fromJson(json, allowGraphs: true);
 
       expect(
-          asciiArtTree2.generate(expandGraphs: true), equals(generateTreeText));
+        asciiArtTree2.generate(expandGraphs: true),
+        equals(generateTreeText),
+      );
 
       expect(asciiArtTree2.totalLeaves, equals(1));
       expect(asciiArtTree2.totalNodes, equals(7));
@@ -816,15 +859,15 @@ a
         'a': {
           'b': {
             'c': {
-              'f': {'x': null}
+              'f': {'x': null},
             },
             'd': {
               'e': {
-                'f': {'y': null}
-              }
+                'f': {'y': null},
+              },
             },
-          }
-        }
+          },
+        },
       }, allowGraphs: true);
 
       var generateTreeText = asciiArtTree.generate();
@@ -836,8 +879,8 @@ a
       expect(asciiArtTree.leaves, equals(['x', 'y']));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 a
 └─┬─ b
   ├─┬─ c
@@ -848,7 +891,8 @@ a
     └─┬─ e
       └─┬─ f ººº
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('graph 2 (expandGraphs)', () async {
@@ -856,15 +900,15 @@ a
         'a': {
           'b': {
             'c': {
-              'f': {'x': null}
+              'f': {'x': null},
             },
             'd': {
               'e': {
-                'f': {'y': null}
-              }
+                'f': {'y': null},
+              },
             },
-          }
-        }
+          },
+        },
       }, allowGraphs: true);
 
       var generateTreeText = asciiArtTree.generate(expandGraphs: true);
@@ -876,8 +920,8 @@ a
       expect(asciiArtTree.leaves, equals(['x', 'y']));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 a
 └─┬─ b
   ├─┬─ c
@@ -890,29 +934,33 @@ a
         ├──> x
         └──> y
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
 
       var json = asciiArtTree.toJson();
 
       expect(
-          json,
-          equals({
-            'a': {
-              'b': {
-                'c': {
-                  'f': {'x': null, 'y': null}
-                },
-                'd': {
-                  'e': {'f': 'f'}
-                }
-              }
-            }
-          }));
+        json,
+        equals({
+          'a': {
+            'b': {
+              'c': {
+                'f': {'x': null, 'y': null},
+              },
+              'd': {
+                'e': {'f': 'f'},
+              },
+            },
+          },
+        }),
+      );
 
       var asciiArtTree2 = ASCIIArtTree.fromJson(json, allowGraphs: true);
 
       expect(
-          asciiArtTree2.generate(expandGraphs: true), equals(generateTreeText));
+        asciiArtTree2.generate(expandGraphs: true),
+        equals(generateTreeText),
+      );
 
       expect(asciiArtTree2.totalLeaves, equals(2));
       expect(asciiArtTree2.totalNodes, equals(8));
@@ -920,38 +968,40 @@ a
 
     test('graph 3 (node ref error)', () async {
       expect(
-          () => ASCIIArtTree({
-                'a': {
-                  'b': {
-                    'c': {
-                      'f': {'x': null}
-                    },
-                    'd': {
-                      'e': {'f': 'z'}
-                    },
-                  }
-                }
-              }, allowGraphs: true),
-          throwsStateError);
+        () => ASCIIArtTree({
+          'a': {
+            'b': {
+              'c': {
+                'f': {'x': null},
+              },
+              'd': {
+                'e': {'f': 'z'},
+              },
+            },
+          },
+        }, allowGraphs: true),
+        throwsStateError,
+      );
     });
 
     test('graph 3 (node type error)', () async {
       expect(
-          () => ASCIIArtTree({
-                'a': {
-                  'b': {
-                    'c': {
-                      'f': {
-                        'x': ['!']
-                      }
-                    },
-                    'd': {
-                      'e': {'f': 'f'}
-                    },
-                  }
-                }
-              }, allowGraphs: true),
-          throwsStateError);
+        () => ASCIIArtTree({
+          'a': {
+            'b': {
+              'c': {
+                'f': {
+                  'x': ['!'],
+                },
+              },
+              'd': {
+                'e': {'f': 'f'},
+              },
+            },
+          },
+        }, allowGraphs: true),
+        throwsStateError,
+      );
     });
 
     test('graph 4 (expandGraphs)', () async {
@@ -961,11 +1011,11 @@ a
             'c': {'f': 'f'},
             'd': {
               'e': {
-                'f': {'g': null}
-              }
+                'f': {'g': null},
+              },
             },
-          }
-        }
+          },
+        },
       }, allowGraphs: true);
 
       var generateTreeText = asciiArtTree.generate(expandGraphs: true);
@@ -979,8 +1029,8 @@ a
       expect(asciiArtTree.leaves, equals(['g']));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 a
 └─┬─ b
   ├─┬─ c
@@ -991,7 +1041,8 @@ a
       └─┬─ f
         └──> g
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('graph 5', () async {
@@ -1000,10 +1051,10 @@ a
           'b': {
             'c': {'f': null},
             'd': {
-              'e': {'f': 'f'}
+              'e': {'f': 'f'},
             },
-          }
-        }
+          },
+        },
       }, allowGraphs: true);
 
       var generateTreeText = asciiArtTree.generate();
@@ -1017,8 +1068,8 @@ a
       expect(asciiArtTree.leaves, equals(['f']));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 a
 └─┬─ b
   ├─┬─ c
@@ -1027,7 +1078,8 @@ a
     └─┬─ e
       └──> f ººº
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
 
     test('graph 5 (expandGraphs)', () async {
@@ -1036,10 +1088,10 @@ a
           'b': {
             'c': {'f': null},
             'd': {
-              'e': {'f': 'f'}
+              'e': {'f': 'f'},
             },
-          }
-        }
+          },
+        },
       }, allowGraphs: true);
 
       var generateTreeText = asciiArtTree.generate(expandGraphs: true);
@@ -1053,8 +1105,8 @@ a
       expect(asciiArtTree.leaves, equals(['f']));
 
       expect(
-          generateTreeText,
-          '''
+        generateTreeText,
+        '''
 a
 └─┬─ b
   ├─┬─ c
@@ -1063,7 +1115,8 @@ a
     └─┬─ e
       └──> f
 '''
-              .trimLeft());
+            .trimLeft(),
+      );
     });
   });
 }

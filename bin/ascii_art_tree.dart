@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'dart:convert' as dart_convert;
+
 import 'package:ascii_art_tree/ascii_art_tree.dart';
 import 'package:path/path.dart' as pack_path;
 
@@ -18,6 +19,8 @@ void main(List<String> args) {
     print('  --elegant # Use `elegant` style (default).');
     print('  --dots    # Use `dots` style.');
     print('  --spaces  # Use `spaces` style.');
+    print('  --from-json # Parse the file as JSON (implied by `.json` files).');
+    print('  --to-json   # Output the tree as JSON.');
     print('');
     print('» EXAMPLES:\n');
     print('    # Read a text file with path entries using ":" delimiter:');
@@ -29,8 +32,6 @@ void main(List<String> args) {
     exit(0);
   }
 
-  var filePath = args[0];
-
   var dots = args.remove('--dots');
   var spaces = args.remove('--spaces');
   var elegant = args.remove('--elegant');
@@ -38,6 +39,12 @@ void main(List<String> args) {
   var fromJson = args.remove('--from-json');
   var toJson = args.remove('--to-json');
 
+  if (args.isEmpty) {
+    stderr.write('** No file path provided.\n');
+    exit(1);
+  }
+
+  var filePath = args[0];
   var delimiter = args.length > 1 ? args[1] : '/';
 
   var file = File(filePath).absolute;
@@ -48,7 +55,7 @@ void main(List<String> args) {
   }
 
   var ext = pack_path.extension(file.path);
-  if (ext.toLowerCase() == 'json') {
+  if (ext.toLowerCase() == '.json') {
     fromJson = true;
   }
 
@@ -95,7 +102,8 @@ ASCIIArtTree _loadFromJSON(String content) {
 
   if (json is! Map) {
     print(
-        '** Loaded JSON is not a `Map`. Loaded JSON type: ${json.runtimeType}');
+      '** Loaded JSON is not a `Map`. Loaded JSON type: ${json.runtimeType}',
+    );
     exit(1);
   }
 

@@ -1,20 +1,24 @@
+import 'dart:collection' show MapBase;
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:graph_explorer/graph_explorer.dart';
 
 /// ASCII Art Tree Styles.
-enum ASCIIArtTreeStyle {
-  spaces,
-  dots,
-  elegant,
-}
+enum ASCIIArtTreeStyle { spaces, dots, elegant }
 
-class _ASCIINode {
+/// The value of each [Node] in an [ASCIIArtTree.graph].
+class ASCIIArtTreeNode {
+  /// The global identity of this node in the graph.
+  ///
+  /// When [ASCIIArtTree.allowGraphs] is `false` this is the full path of the
+  /// node (joined with [ASCIIArtTree.pathDelimiter]); otherwise it is [key].
   final String graphKey;
+
+  /// The local key of this node: the text rendered in the tree.
   final String key;
 
-  _ASCIINode(this.graphKey, this.key);
+  ASCIIArtTreeNode(this.graphKey, this.key);
 
   int get length => key.length;
 
@@ -23,7 +27,7 @@ class _ASCIINode {
     if (identical(this, other)) return true;
 
     // When walking the tree:
-    if (other is _ASCIINode) {
+    if (other is ASCIIArtTreeNode) {
       return runtimeType == other.runtimeType && graphKey == other.graphKey;
     }
     // When accessing a JSON node:
@@ -31,7 +35,7 @@ class _ASCIINode {
       return key == other;
     }
     // When accessing processed nodes.
-    else if (other is Node<_ASCIINode>) {
+    else if (other is Node<ASCIIArtTreeNode>) {
       return graphKey == other.value.graphKey;
     } else {
       return false;
@@ -45,10 +49,75 @@ class _ASCIINode {
   String toString() => key;
 }
 
+/// A JSON tree node that can also be looked up by [ASCIIArtTreeNode].
+///
+/// `Graph.fromJson` looks up each node's JSON entry using the node value (an
+/// [ASCIIArtTreeNode]) as the key. A plain `Map<String, dynamic>` never
+/// matches it: the Dart runtime compares a lookup key with the *stored* key's
+/// `==` (`String.==`), so the asymmetric `ASCIIArtTreeNode == String` is never
+/// consulted, and every tree collapsed to its root node.
+class _JsonNode extends MapBase<String, dynamic> {
+  final Map<String, dynamic> _entries = <String, dynamic>{};
+
+  static Object? _keyOf(Object? key) => key is ASCIIArtTreeNode ? key.key : key;
+
+  @override
+  dynamic operator [](Object? key) => _entries[_keyOf(key)];
+
+  @override
+  void operator []=(String key, dynamic value) => _entries[key] = value;
+
+  @override
+  bool containsKey(Object? key) => _entries.containsKey(_keyOf(key));
+
+  @override
+  dynamic remove(Object? key) => _entries.remove(_keyOf(key));
+
+  @override
+  void clear() => _entries.clear();
+
+  @override
+  Iterable<String> get keys => _entries.keys;
+
+  @override
+  int get length => _entries.length;
+
+  /// Copies [tree] into [_JsonNode]s, stringifying the keys.
+  ///
+  /// Iterative (not recursive) to support deep trees. A [Map] referenced more
+  /// than once (or cyclically) is copied only once, preserving the sharing.
+  static _JsonNode from(Map tree) {
+    final copies = Map<Map, _JsonNode>.identity();
+    final pending = <Map>[];
+
+    _JsonNode copyOf(Map map) {
+      var copy = copies[map];
+      if (copy == null) {
+        copies[map] = copy = _JsonNode();
+        pending.add(map);
+      }
+      return copy;
+    }
+
+    final root = copyOf(tree);
+
+    while (pending.isNotEmpty) {
+      final map = pending.removeLast();
+      final copy = copies[map]!;
+      for (final e in map.entries) {
+        final value = e.value;
+        copy[e.key.toString()] = value is Map ? copyOf(value) : value;
+      }
+    }
+
+    return root;
+  }
+}
+
 /// ASCII Art Tree generator.
 class ASCIIArtTree {
   /// The tree.
-  late final Graph<_ASCIINode> _graph;
+  late final Graph<ASCIIArtTreeNode> _graph;
 
   /// The delimiter to use when joining nodes to represent a full path.
   final String pathDelimiter;
@@ -91,35 +160,43 @@ class ASCIIArtTree {
     this.style = ASCIIArtTreeStyle.elegant,
     this.allowGraphs = false,
   }) {
-    _graph = Graph<_ASCIINode>.fromJson(
-        tree.map<String, dynamic>((k, v) => MapEntry(k.toString(), v)),
-        nodeValueMapper: _jsonToNode);
+    _graph = Graph<ASCIIArtTreeNode>.fromJson(
+      _JsonNode.from(tree),
+      nodeValueMapper: _jsonToNode,
+    );
   }
 
-  _ASCIINode _jsonToNode(GraphStep<_ASCIINode>? prevStep, String key) {
+  ASCIIArtTreeNode _jsonToNode(
+    GraphStep<ASCIIArtTreeNode>? prevStep,
+    String key,
+  ) {
     if (allowGraphs) {
-      return _ASCIINode(key, key);
+      return ASCIIArtTreeNode(key, key);
     } else {
       var graphKey = prevStep != null
-          ? prevStep
-              .fullPathToRoot(tailString: [key], pathDelimiter: pathDelimiter)
+          ? prevStep.fullPathToRoot(
+              tailString: [key],
+              pathDelimiter: pathDelimiter,
+            )
           : key;
 
-      return _ASCIINode(graphKey, key);
+      return ASCIIArtTreeNode(graphKey, key);
     }
   }
 
   /// Constructs an [ASCIIArtTree] from a list of paths, splitting
   /// the paths by [delimiter] or using the [splitter] if provided.
   /// See [ASCIIArtTree.fromPaths].
-  factory ASCIIArtTree.fromStringPaths(Iterable<String> paths,
-      {Pattern delimiter = '/',
-      List<String> Function(String s)? splitter,
-      String blankRoot = '/',
-      String? stripPrefix,
-      String? stripSuffix,
-      ASCIIArtTreeStyle style = ASCIIArtTreeStyle.elegant,
-      bool allowGraphs = false}) {
+  factory ASCIIArtTree.fromStringPaths(
+    Iterable<String> paths, {
+    Pattern delimiter = '/',
+    List<String> Function(String s)? splitter,
+    String blankRoot = '/',
+    String? stripPrefix,
+    String? stripSuffix,
+    ASCIIArtTreeStyle style = ASCIIArtTreeStyle.elegant,
+    bool allowGraphs = false,
+  }) {
     splitter ??= (p) => p.split(delimiter);
 
     var paths2 = paths.map(splitter).toList(growable: false);
@@ -132,22 +209,26 @@ class ASCIIArtTree {
       }
     }
 
-    return ASCIIArtTree.fromPaths(paths2,
-        pathDelimiter: delimiter is String ? delimiter : '/',
-        stripPrefix: stripPrefix,
-        stripSuffix: stripSuffix,
-        style: style,
-        allowGraphs: allowGraphs);
+    return ASCIIArtTree.fromPaths(
+      paths2,
+      pathDelimiter: delimiter is String ? delimiter : '/',
+      stripPrefix: stripPrefix,
+      stripSuffix: stripSuffix,
+      style: style,
+      allowGraphs: allowGraphs,
+    );
   }
 
   /// Constructs an [ASCIIArtTree] from a list of paths (already split).
   /// See [ASCIIArtTree.fromStringPaths].
-  factory ASCIIArtTree.fromPaths(Iterable<List<String>> paths,
-      {String pathDelimiter = '/',
-      String? stripPrefix,
-      String? stripSuffix,
-      ASCIIArtTreeStyle style = ASCIIArtTreeStyle.elegant,
-      bool allowGraphs = false}) {
+  factory ASCIIArtTree.fromPaths(
+    Iterable<List<String>> paths, {
+    String pathDelimiter = '/',
+    String? stripPrefix,
+    String? stripSuffix,
+    ASCIIArtTreeStyle style = ASCIIArtTreeStyle.elegant,
+    bool allowGraphs = false,
+  }) {
     var tree = <String, dynamic>{};
 
     for (var path in paths.where((p) => p.isNotEmpty)) {
@@ -160,31 +241,37 @@ class ASCIIArtTree {
       }
     }
 
-    return ASCIIArtTree(tree,
-        pathDelimiter: pathDelimiter,
-        stripPrefix: stripPrefix,
-        stripSuffix: stripSuffix,
-        style: style,
-        allowGraphs: allowGraphs);
+    return ASCIIArtTree(
+      tree,
+      pathDelimiter: pathDelimiter,
+      stripPrefix: stripPrefix,
+      stripSuffix: stripSuffix,
+      style: style,
+      allowGraphs: allowGraphs,
+    );
   }
 
   /// Constructs an [ASCIIArtTree] from a JSON [Map].
-  factory ASCIIArtTree.fromJson(Map<String, dynamic> json,
-      {String pathDelimiter = '/',
-      String? stripPrefix,
-      String? stripSuffix,
-      ASCIIArtTreeStyle style = ASCIIArtTreeStyle.elegant,
-      bool allowGraphs = false}) {
-    return ASCIIArtTree(json,
-        pathDelimiter: pathDelimiter,
-        stripPrefix: stripPrefix,
-        stripSuffix: stripSuffix,
-        style: style,
-        allowGraphs: allowGraphs);
+  factory ASCIIArtTree.fromJson(
+    Map<String, dynamic> json, {
+    String pathDelimiter = '/',
+    String? stripPrefix,
+    String? stripSuffix,
+    ASCIIArtTreeStyle style = ASCIIArtTreeStyle.elegant,
+    bool allowGraphs = false,
+  }) {
+    return ASCIIArtTree(
+      json,
+      pathDelimiter: pathDelimiter,
+      stripPrefix: stripPrefix,
+      stripSuffix: stripSuffix,
+      style: style,
+      allowGraphs: allowGraphs,
+    );
   }
 
   /// The internal graph to represent the tree.
-  Graph<_ASCIINode> get graph => _graph;
+  Graph<ASCIIArtTreeNode> get graph => _graph;
 
   /// Returns the total number of roots in the [tree].
   int get totalRoots => _graph.roots.length;
@@ -205,20 +292,22 @@ class ASCIIArtTree {
 
   /// Generates the ASCII Art Tree.
   /// - If [style] is passed overrides the instance style.
-  String generate(
-      {String indent = '',
-      bool trim = false,
-      ASCIIArtTreeStyle? style,
-      bool expandGraphs = false,
-      bool expandSideBranches = false,
-      bool hideReferences = false,
-      String referenceMark = 'ººº'}) {
+  String generate({
+    String indent = '',
+    bool trim = false,
+    ASCIIArtTreeStyle? style,
+    bool expandGraphs = false,
+    bool expandSideBranches = false,
+    bool hideReferences = false,
+    String referenceMark = 'ººº',
+  }) {
     if (_graph.isEmpty) return '';
 
     style ??= this.style;
 
-    final graphWalker =
-        GraphWalker<_ASCIINode>(maxExpansion: _defaultMaxExpansion);
+    final graphWalker = GraphWalker<ASCIIArtTreeNode>(
+      maxExpansion: _defaultMaxExpansion,
+    );
 
     var treesTexts = <String>[];
 
@@ -255,8 +344,12 @@ class ASCIIArtTree {
     }
   }
 
-  String _applyIndent(String indent, String text,
-      {bool trim = false, String? indent0}) {
+  String _applyIndent(
+    String indent,
+    String text, {
+    bool trim = false,
+    String? indent0,
+  }) {
     if (trim) {
       text = text.trim();
     }
@@ -281,17 +374,18 @@ class ASCIIArtTree {
   /// If defined provides optional extra info
   /// for each entry in the [generate]d tree:
   String? Function(List<String> parents, Map<String, dynamic> node, String key)?
-      pathInfoProvider;
+  pathInfoProvider;
 
   String _buildTree(
-      GraphWalker<_ASCIINode> graphWalker,
-      _ASCIINode rootValue,
-      bool expandGraphs,
-      bool expandSideBranches,
-      bool hideReferences,
-      String referenceMark,
-      bool elegant,
-      {String? rootLine}) {
+    GraphWalker<ASCIIArtTreeNode> graphWalker,
+    ASCIIArtTreeNode rootValue,
+    bool expandGraphs,
+    bool expandSideBranches,
+    bool hideReferences,
+    String referenceMark,
+    bool elegant, {
+    String? rootLine,
+  }) {
     if (!elegant) {
       rootLine ??= rootValue.key.length > 1 ? '   ' : '  ';
     }
@@ -312,7 +406,7 @@ class ASCIIArtTree {
       return indent;
     }
 
-    process(GraphNodeStep<_ASCIINode> step) {
+    process(GraphNodeStep<ASCIIArtTreeNode> step) {
       final parent = step.parentNode;
       final node = step.node;
       final depth = step.depth;
@@ -345,16 +439,19 @@ class ASCIIArtTree {
         conn = '├';
       }
 
-      var importStripped =
-          _stripSuffix(stripSuffix, _stripPrefix(stripPrefix, nodeKey));
+      var importStripped = _stripSuffix(
+        stripSuffix,
+        _stripPrefix(stripPrefix, nodeKey),
+      );
 
       var processed = step.processed;
 
       // Already processed node. If NOT `expandGraphs`, not writing it again:
       if (!expandGraphs && allowGraphs && (processed[node] ?? 0) >= 2) {
         if (!hideReferences) {
-          stringBuffer
-              .write('$indent$conn$arrow$importStripped $referenceMark\n');
+          stringBuffer.write(
+            '$indent$conn$arrow$importStripped $referenceMark\n',
+          );
         }
         return GraphWalkingInstruction.next();
       }
@@ -363,7 +460,7 @@ class ASCIIArtTree {
       if (pathInfoProvider != null) {
         var parents =
             step.previous?.valuePathToRoot.map((e) => e.toString()).toList() ??
-                [];
+            [];
 
         var parentJson = parent?.attachment as Map<String, dynamic>?;
         parentJson ??= {};
@@ -494,7 +591,7 @@ class ASCIIArtTree {
         var nextChar = next[idx];
 
         if (nextChar == _sideBranchBar || nextChar == '╚') {
-          lines[i] = line.substring(0, idx) + '╦' + line.substring(idx + 1);
+          lines[i] = '${line.substring(0, idx)}╦${line.substring(idx + 1)}';
         }
       }
     }
@@ -527,8 +624,9 @@ class ASCIIArtTree {
     var min = linesIndented.map((e) => e.key).reduce((v, e) => math.min(v, e));
 
     if (min > 0) {
-      linesIndented =
-          linesIndented.map((e) => MapEntry(e.key - min, e.value)).toList();
+      linesIndented = linesIndented
+          .map((e) => MapEntry(e.key - min, e.value))
+          .toList();
     }
 
     if (needsFinalBlankLine) {
@@ -570,14 +668,17 @@ extension ASCIIArtTreeGraphExtension<T> on Graph<T> {
     String Function(T value)? keyCast,
   }) {
     var tree = toTree<String>(
-        keyCast: keyCast,
-        sortByInputDependency: sortByInputDependency,
-        bfs: true);
+      keyCast: keyCast,
+      sortByInputDependency: sortByInputDependency,
+      bfs: true,
+    );
 
-    return ASCIIArtTree(tree,
-        stripPrefix: stripPrefix,
-        stripSuffix: stripSuffix,
-        style: style,
-        allowGraphs: allowGraphs);
+    return ASCIIArtTree(
+      tree,
+      stripPrefix: stripPrefix,
+      stripSuffix: stripSuffix,
+      style: style,
+      allowGraphs: allowGraphs,
+    );
   }
 }
